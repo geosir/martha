@@ -234,7 +234,7 @@ public class Martha {
 					// It's a comment, do nothing.
 				} 
 				
-				//Give error and do nothing is there is a bad operator.
+				//Give error and do nothing if there is a bad operator.
 				else {
 					System.out.println("Not understood: " + line);
 				}
@@ -250,9 +250,9 @@ public class Martha {
 		return (results);
 	}
 
-	//The main function should use this method when collectinig input from the user.
-	//It is a wrapper for the interpret() function which also assers to the Cyc KB
-	//that the user should know the facts that he assers himself.
+	//The main function should use this method when collecting input from the user.
+	//It is a wrapper for the interpret() function which also asserts to the Cyc KB
+	//that the user should know the facts that he asserts himself.
 	public ArrayList<String> interpretFromUser(String input) {
 		
 		//ArrayList to store results from interpet()

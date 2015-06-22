@@ -1,55 +1,87 @@
+### Create new constants. ###
+
+#MARTHA is the program, and USER is the abstraction of the MARTHA user.
 +MARTHA
 +USER
+
+#Create the concept of the ChicagoBotanicGardens, as well as its location.
 +ChicagoBotanicGardens
 +CityOfGlencoeIL
 
+#The user is a person
 =(isa USER Person)
 
+#### Create MARTHA functions. ###
+
+#Define say-TheMARTHAFunction. It takes one argument, a sentence.
 *say-TheMARTHAFunction
 =(arity say-TheMARTHAFunction 1)
 =(argIsa say-TheMARTHAFunction 1  Thing)
+#Saying something causes the user to know what was said.
 >(causes-PropProp (say-TheMARTHAFunction ?THING) (knows USER ?THING))
+#Saying something implies that the user knows that was said.
+#This is distinct from causes-PropProp, since this will actually
+#make Cyc change the state of (knows USER ?THING)
 >(implies (say-TheMARTHAFunction ?THING) (knows USER ?THING))
 
+#Define query-TheMARTHAFunction. It takes one argument, a sentence.
 *query-TheMARTHAFunction
 =(arity query-TheMARTHAFunction 1)
 =(argIsa query-TheMARTHAFunction 1 Thing)
+#Asking whether the user knows something is a precondition for MARTHA knowing
+#what the user knows.
 >(preconditionFor-Props (knows USER ?THING) (query-TheMARTHAFunction ?THING))
 
+#Concept of driving to a certain place. Takes 2 args, a person and a destination.
 *driveTo
 =(arity driveTo 2)
 =(argIsa driveTo 1 Person)
 =(argIsa driveTo 2 Place)
+#Driving somwhere causes the person to be at the place.
 >(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#The precondition for driving somewhere is knowing where it is.
 >(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
 
+#Predicate indicating the persistence of goal.
 *goalIsPersistent
 =(arity goalIsPersistent 2)
 =(argIsa goalIsPersistent 1 Thing)
 =(argIsa goalIsPersistent 2 TruthValue)
 
+#The CBGs are a garden, and they are in Glencoe, IL.
 =(isa ChicagoBotanicGardens Garden)
 =(placeInCity ChicagoBotanicGardens CityOfGlencoeIL)
 
-
+#Glencoe is a city in Illinois.
 =(isa CityOfGlencoeIL City)
 =(cityInState CityOfGlencoeIL Illinois-State)
 
+#A precondition for being happy is wearing appropriate clothing.
 >(preconditionFor-Props (wearsClothing USER ??APPROPRIATECLOTHING) (feelsEmotion USER (HighAmountFn Happiness)))
+#If the user is going outside, this means that the user would want to know the weather outside and what to weat in order to be happy.
 >(implies (and (temperatureOfObject ?PLACE ?TEMPERATURE) (desires USER (at-UnderspecifiedLandmark USER ?PLACE)))(preconditionFor-Props (knows USER (temperatureOfObject ?PLACE ?TEMPERATURE)) (wearsClothing USER ??APPROPRIATECLOTHING)))
 
+#If the user knows that the weather at a place is sunny, he will assume it is warm.
 >(implies (knows USER (weather ?PLACE SunnyArea)) (knows USER (temperatureOfObject ?PLACE Warm)))
 
+#MARTHA knows that the CBGs aree cold. But they are sunny.
 =(temperatureOfObject ChicagoBotanicGardens Cold)
 =(isa ChicagoBotanicGardens SunnyArea)
 
+#The user wants to go to the CBGs.
 =(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
+#This is a very important desire.
 =(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
+
+#The user wants to be happy
 =(desires USER (feelsEmotion USER (HighAmountFn Happiness)))
+#This is a medium importance desire, since it's kindof vauge.
 =(goalImportance USER (desires USER (feelsEmotion USER (HighAmountFn Happiness))) mediumAmountOf)
+#But it is a persistent one that informs all actions.
 =(goalIsPersistent (desires USER (feelsEmotion USER (HighAmountFn Happiness))) True)
 
 #Should the affinity to correct the user be taught here, or hardcoded in the MARTHA software?
 #>(implies (and (temperatureOfObject ?PLACE ?TEMP) (knows USER (temperatureOfObject ?PLACE ?WRONGTEMP) (different ?TEMP ?WRONGTEMP))) (and (say-TheMARTHAFunction "HEY! Despite ")
 
+#The user knows that the CBGs are sunny.
 =(knows USER (isa ChicagoBotanicGardens SunnyArea))

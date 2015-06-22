@@ -1,55 +1,86 @@
+### Create new constants. ###
+
+#MARTHA is the program, and USER is the abstraction of the MARTHA user.
 +MARTHA
 +USER
+
+#Create the concept of the ChicagoBotanicGardens, as well as its location.
+#Create the concept of the FiveDollarSteakSandwich, the subject of this scenario.
 +ChicagoBotanicGardens
 +CityOfGlencoeIL
 +FiveDollarSteakSandwich
-
-=(isa USER Person)
-
-#TMF is short for TMF
-*say-TMF
-=(arity say-TMF 1)
-=(argIsa say-TMF 1  Thing)
->(causes-PropProp (say-TMF ?THING) (knows USER ?THING))
-#>(exceptWhen (desires USER (hasDBAttribute MARTHA Repetition)) (preconditionFor-Props (not (knows MARTHA (knows USER ?THING))) (say-TMF ?THING)))
-#>(preconditionFor-Props (not (knows MARTHA (knows USER ?THING))) (say-TMF ?THING))
->(implies (say-TMF ?THING) (knows USER ?THING))
->(implies (say-TMF ?THING) (knows MARTHA (knows USER ?THING)))
-
-*query-TMF
-=(arity query-TMF 1)
-=(argIsa query-TMF 1 Thing)
->(causes-PropProp (not (knows MARTHA (knows USER ?THING))) (query-TMF (knows USER ?THING)))
->(causes-PropProp (query-TMF (knows USER ?THING)) (knows MARTHA (knows USER ?THING)))
-
-*driveTo
-=(arity driveTo 2)
-=(argIsa driveTo 1 Person)
-=(argIsa driveTo 2 Place)
->(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
->(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
 
 +WalkingShoes
 >(isa WalkingShoes Shoe)
 >(isa WalkingShoes Product)
 
+#The user is a person
+=(isa USER Person)
+
+#### Create MARTHA functions. ###
+
+#TMF is short for TMF
+
+#Define say-TheMARTHAFunction. It takes one argument, a sentence.
+*say-TMF
+=(arity say-TMF 1)
+=(argIsa say-TMF 1  Thing)
+#Saying something causes the user to know what was said.
+
+>(causes-PropProp (say-TMF ?THING) (knows USER ?THING))
+#>(exceptWhen (desires USER (hasDBAttribute MARTHA Repetition)) (preconditionFor-Props (not (knows MARTHA (knows USER ?THING))) (say-TMF ?THING)))
+#>(preconditionFor-Props (not (knows MARTHA (knows USER ?THING))) (say-TMF ?THING))
+#Saying something implies that the user knows that was said.
+#This is distinct from causes-PropProp, since this will actually
+#make Cyc change the state of (knows USER ?THING)
+>(implies (say-TMF ?THING) (knows USER ?THING))
+>(implies (say-TMF ?THING) (knows MARTHA (knows USER ?THING)))
+
+#Define query-TheMARTHAFunction. It takes one argument, a sentence.
+*query-TMF
+=(arity query-TMF 1)
+=(argIsa query-TMF 1 Thing)
+#Asking whether the user knows something is a precondition for MARTHA knowing
+#what the user knows.
+>(causes-PropProp (not (knows MARTHA (knows USER ?THING))) (query-TMF (knows USER ?THING)))
+>(causes-PropProp (query-TMF (knows USER ?THING)) (knows MARTHA (knows USER ?THING)))
+
+#Concept of driving to a certain place. Takes 2 args, a person and a destination.
+*driveTo
+=(arity driveTo 2)
+=(argIsa driveTo 1 Person)
+=(argIsa driveTo 2 Place)
+#Driving somwhere causes the person to be at the place.
+>(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#The precondition for driving somewhere is knowing where it is.
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
+
+#Create concept of walkinig to a place, takes args of a person and a place
 *walkTo
 =(arity walkTo 2)
 =(argIsa walkTo 1 Person)
 =(argIsa walkTo 2 Place)
+#Walking somewhere will be you be at that place
 >(causes-PropProp (walkTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#A precondition for walking somewhere is knowing where it is.
 >(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (walkTo USER ?PLACE)))
+#Another precondition is that you have shoes.
 >(preconditionFor-Props (possesses USER WalkingShoes) (walkTo USER ?PLACE))
 
+#You can trade things. Takes 3 args, the person, the given item, and the received item.
 *tradeThisForThis
 =(arity tradeThisForThis 3)
 =(argIsa tradeThisForThis 1 Person)
 =(argIsa tradeThisForThis 2 Thing)
 =(argIsa tradeThisForThis 3 Thing)
+#Trading an item causes you to possess the received item.
 >(causes-PropProp (tradeThisForThis USER ??TRADEITEM ?RECEIVE) (possesses USER ?RECEIVE))
+#A precondition for this is that the user has the given item to give.
 >(preconditionFor-Props (possesses USER ?TRADEITEM) (tradeThisForThis USER ?TRADEITEM ??OTHERITEM))
+#The given item must not be the same as the trade item (or you get loops).
 >(implies (tradeThisForThis USER ?TRADEITEM ?RECEIVE) (not (equals ?TRADEITEM ?RECEIVE)))
 
+#Predicate indicating the persistence of goal.
 *goalIsPersistent
 =(arity goalIsPersistent 2)
 =(argIsa goalIsPersistent 1 Thing)
@@ -65,7 +96,7 @@
 =(argIsa stateValue 3 Thing)
 =(argIsa stateValue 4 Thing)
 
-
+#Set the state values of various things in various conditions (latter doesn't work)
 >(stateValue USER (knows USER ?THING) 10)
 >(stateValue USER (driveTo USER ?PLACE) -5)
 >(stateValue USER (walkTo USER ?PLACE) -3)
@@ -73,14 +104,12 @@
 #>(ConditionalPhraseFn (knows USER ?THING) (stateValue USER (knows USER ?THING) 5)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 10))
 #>(ConditionalPhraseFn (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5) (stateValue USER ?SOMETHING 20))
 #>(ConditionalPhraseFn (knows MARTHA (knows USER ??SOMETHING)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 5) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 15))
-
 #>(overrides (implies (knows USER ?THING) (stateValue USER (knows USER ?THING) 5)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 50))
 #>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5))
 >(implies (desires USER ?SOMETHING) (stateValue USER ?SOMETHING 20)))
 #>(overrides (implies (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5)) (implies (desires USER ?SOMETHING) (stateValue USER ?SOMETHING 20)))
 >(stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 15))
 #>(implies (knows MARTHA (knows USER ??SOMETHING)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 5))
-
 #>(implies (knows USER ?THING) (stateValue USER (knows USER ?THING) 5))
 #>(implies (not (knows USER ?SOMETHING)) (stateValue USER (knows USER ?SOMETHING) 10))
 #>(implies (not (knows MARTHA (knows USER ??SOMETHING))) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 15))
@@ -88,40 +117,59 @@
 #>(implies (and (desires USER ?SOMETHING) (not ?SOMETHING)) (stateValue USER ?SOMETHING 20))
 #>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5))
 
+#If the user knows something in the KB, then MARTHA knows that the user knows something.
 >(implies (knows USER ?SOMETHING) (knows MARTHA (knows USER ?SOMETHING)))
 
+#The CBGs are a garden, and they are in Glencoe, IL.
 =(isa ChicagoBotanicGardens Garden)
 =(placeInCity ChicagoBotanicGardens CityOfGlencoeIL)
 
-
+#Glencoe is a city in Illinois.
 =(isa CityOfGlencoeIL City)
 =(cityInState CityOfGlencoeIL Illinois-State)
 
+#A precondition for being happy is wearing appropriate clothing.
 >(preconditionFor-Props (wearsClothing USER ??APPROPRIATECLOTHING) (feelsEmotion USER (HighAmountFn Happiness)))
+#If the user is going outside, this means that the user would want to know the weather outside and what to weat in order to be happy.
 >(implies (and (temperatureOfObject ?PLACE ?TEMPERATURE) (desires USER (at-UnderspecifiedLandmark USER ?PLACE)))(preconditionFor-Props (knows USER (temperatureOfObject ?PLACE ?TEMPERATURE)) (wearsClothing USER ??APPROPRIATECLOTHING)))
 
+#If the user knows that the weather at a place is sunny, he will assume it is warm.
 >(implies (knows USER (weather ?PLACE SunnyArea)) (knows USER (temperatureOfObject ?PLACE Warm)))
 
+#MARTHA knows that the CBGs aree cold. But they are sunny.
 =(temperatureOfObject ChicagoBotanicGardens Cold)
 =(isa ChicagoBotanicGardens SunnyArea)
 
+#The user wants to go to the CBGs.
 =(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
+#This is a very important desire.
 =(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
+
+#The user wants to be happy
 =(desires USER (feelsEmotion USER (HighAmountFn Happiness)))
+#This is a medium importance desire, since it's kindof vauge.
 =(goalImportance USER (desires USER (feelsEmotion USER (HighAmountFn Happiness))) mediumAmountOf)
+#But it is a persistent one that informs all actions.
 =(goalIsPersistent (desires USER (feelsEmotion USER (HighAmountFn Happiness))) True)
 
 #Should the affinity to correct the user be taught here, or hardcoded in the MARTHA software?
 #>(implies (and (temperatureOfObject ?PLACE ?TEMP) (knows USER (temperatureOfObject ?PLACE ?WRONGTEMP) (different ?TEMP ?WRONGTEMP))) (and (say-TMF "HEY! Despite ")
 
+#The user knows that the CBGs are sunny.
 =(knows USER (isa ChicagoBotanicGardens SunnyArea))
 
+
+#Assert facts about the FiveDollarSteakSandwich
 =(isa FiveDollarSteakSandwich Sandwich)
 =(isa FiveDollarSteakSandwich Product)
+#The FiveDollarSteakSandwich costs $5.00
 =(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
 
+#A precondition for buying a product is knowing its price.
 >(implies (basicPrice ?PRODUCT ?VALUE) (preconditionFor-Props (knows ?AGENT (basicPrice ?PRODUCT ?VALUE)) (buys ?AGENT ?PRODUCT)))
+#One of the ways to possess a product is the buy it. The other is to steal it.
 >(causes-PropProp (buys ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
 >(causes-PropProp (steals ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
 
->(implies (and (desires USER ?SOMETHING) ?SOMETHING) (unassertAnAssertionInCyc MARTHA (desires USER ?SOMETHING)))
+#Attempted assertion to unassert fulfilled desires. Did not work.
+#>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (unassertAnAssertionInCyc MARTHA (desires USER ?SOMETHING)))

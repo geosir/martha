@@ -83,7 +83,7 @@ public class MainProcess {
 	}
 
 	// Since console input from the traditional System.console.readline()
-	// doesn't work in Eclispe,
+	// doesn't work in Eclipse,
 	// I'm using this workaround instead.
 	private static String getInput(String prompt) {
 		// Create a new buffer reader attached to the System input buffer
