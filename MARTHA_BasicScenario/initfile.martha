@@ -1,0 +1,53 @@
+#Create new constants.
+#MARTHA is the program, and USER is the abstraction of the MARTHA user.
++MARTHA
++USER
+
+#Create the concept of the FiveDollarSteakSandwich, the subject of this scenario.
++FiveDollarSteakSandwich
+
+#Create MARTHA functions.
+*say-TheMARTHAFunction
+*willingTo
+##Note: willingTo was intended to be a function that corresponded to the user's 
+##willingness to perform a function, which would store in the Cyc KB an impression
+##of the possibility of an action. This does not get used.
+
+#Yes, the user is a person.
+=(isa USER Person)
+
+#Define say-TheMARTHAFunction. It takes one argument, a sentence.
+=(arity say-TheMARTHAFunction 1)
+=(argIsa say-TheMARTHAFunction 1 Sentence)
+#Saying something causes the user to know what was said.
+>(causes-PropProp (say-TheMARTHAFunction ?SENTENCE) (knows USER ?SENTENCE))
+#Assert that this action is possible. This did not end up being used.
+>(possible (say-TheMARTHAFunction ?SENTENCE))
+
+#willingTo has two parameters: an IntelligentAgent and an event.
+#Did not end up being used.
+=(arity willingTo 2)
+=(argIsa willingTo 1 IntelligentAgent)
+=(argIsa willingTo 2 Event)
+#willingTo is just a wrapper for a more complicated formal assertion.
+>(implies (willingTo ?AGENT ?EVENT) (feelsTowardsEvent ?AGENT ?EVENT Willingness highAmountOf))
+
+#Assert facts about the FiveDollarSteakSandwich
+=(isa FiveDollarSteakSandwich Sandwich)
+=(isa FiveDollarSteakSandwich Product)
+#The FiveDollarSteakSandwich costs $5.00
+=(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
+
+#User is willingTo buy product.
+>(willingTo USER (buys USER ?PRODUCT)))
+#A precondition for buying a product is knowing its price.
+>(implies (basicPrice ?PRODUCT ?VALUE) (preconditionFor-Props (knows ?AGENT (basicPrice ?PRODUCT ?VALUE)) (buys ?AGENT ?PRODUCT)))
+#One of the ways to possess a product is the buy it. The other is to steal it.
+>(causes-PropProp (buys ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
+>(causes-PropProp (steals ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
+
+#The input line that would be entered into the MARTHA prompt
+#to let MARTHA know that the user desires to possess a sandwich.
+#There is no natural language input in Cyc yet (June 2015),
+#so this is all we have.
+#=(desires USER (possesses USER FiveDollarSteakSandwich))

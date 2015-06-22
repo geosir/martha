@@ -1,0 +1,55 @@
++MARTHA
++USER
++ChicagoBotanicGardens
++CityOfGlencoeIL
+
+=(isa USER Person)
+
+*say-TheMARTHAFunction
+=(arity say-TheMARTHAFunction 1)
+=(argIsa say-TheMARTHAFunction 1  Thing)
+>(causes-PropProp (say-TheMARTHAFunction ?THING) (knows USER ?THING))
+>(implies (say-TheMARTHAFunction ?THING) (knows USER ?THING))
+
+*query-TheMARTHAFunction
+=(arity query-TheMARTHAFunction 1)
+=(argIsa query-TheMARTHAFunction 1 Thing)
+>(preconditionFor-Props (knows USER ?THING) (query-TheMARTHAFunction ?THING))
+
+*driveTo
+=(arity driveTo 2)
+=(argIsa driveTo 1 Person)
+=(argIsa driveTo 2 Place)
+>(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
+
+*goalIsPersistent
+=(arity goalIsPersistent 2)
+=(argIsa goalIsPersistent 1 Thing)
+=(argIsa goalIsPersistent 2 TruthValue)
+
+=(isa ChicagoBotanicGardens Garden)
+=(placeInCity ChicagoBotanicGardens CityOfGlencoeIL)
+
+
+=(isa CityOfGlencoeIL City)
+=(cityInState CityOfGlencoeIL Illinois-State)
+
+>(preconditionFor-Props (wearsClothing USER ??APPROPRIATECLOTHING) (feelsEmotion USER (HighAmountFn Happiness)))
+>(implies (and (temperatureOfObject ?PLACE ?TEMPERATURE) (desires USER (at-UnderspecifiedLandmark USER ?PLACE)))(preconditionFor-Props (knows USER (temperatureOfObject ?PLACE ?TEMPERATURE)) (wearsClothing USER ??APPROPRIATECLOTHING)))
+
+>(implies (knows USER (weather ?PLACE SunnyArea)) (knows USER (temperatureOfObject ?PLACE Warm)))
+
+=(temperatureOfObject ChicagoBotanicGardens Cold)
+=(isa ChicagoBotanicGardens SunnyArea)
+
+=(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
+=(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
+=(desires USER (feelsEmotion USER (HighAmountFn Happiness)))
+=(goalImportance USER (desires USER (feelsEmotion USER (HighAmountFn Happiness))) mediumAmountOf)
+=(goalIsPersistent (desires USER (feelsEmotion USER (HighAmountFn Happiness))) True)
+
+#Should the affinity to correct the user be taught here, or hardcoded in the MARTHA software?
+#>(implies (and (temperatureOfObject ?PLACE ?TEMP) (knows USER (temperatureOfObject ?PLACE ?WRONGTEMP) (different ?TEMP ?WRONGTEMP))) (and (say-TheMARTHAFunction "HEY! Despite ")
+
+=(knows USER (isa ChicagoBotanicGardens SunnyArea))

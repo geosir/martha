@@ -1,0 +1,104 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <artifactId>core-api-tests</artifactId>
+  <groupId>com.cyc</groupId>
+  <version>1.0.0-rc2</version>
+  <packaging>jar</packaging>
+  
+  <name>Cyc Core API Tests</name>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+  </properties>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.10</version>
+        <!--
+        The Maven SureFire Plugin is used during the test phase of the build lifecycle to execute
+        the unit tests.
+        
+        Documentation of configuration settings is available at:
+        http://maven.apache.org/surefire/maven-surefire-plugin/test-mojo.html
+        -->
+        <configuration>
+          <!--
+          If useFile is set to true, report files will be generated in target/surefire-reports.
+          If set to false, verbose output will be logged to the console; reports won't be generated.
+          --> 
+          <useFile>true</useFile> 
+          
+          <systemProperties>
+            <!--
+            Properties used to configure unit tests.
+            
+            For details, see com.cyc.session.internal.TestEnvironmentProperties
+            -->
+            <property>
+              <name>cyc.test.includeGuiElementTests</name>
+              <value>false</value>
+            </property>
+            <property>
+              <name>cyc.test.connectionFactoryExpectedOnClassPath</name>
+              <value>true</value>
+            </property>
+            <property>
+              <name>cyc.test.expectedNumberOfCycObjectLibraries</name>
+              <value>9</value>
+            </property>
+          </systemProperties>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+  
+  <dependencies>
+    <dependency>
+      <groupId>com.cyc</groupId>
+      <artifactId>cyc-core-suite</artifactId>
+      <version>1.0.0-rc2</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+      <scope>test</scope>
+    </dependency>
+    
+  </dependencies>
+</project>

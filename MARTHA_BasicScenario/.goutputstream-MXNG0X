@@ -1,0 +1,12 @@
++MARTHA
++USER
++FiveDollarSteakSandwich
+
+>(isa USER Person)
+
+>(isa FiveDollarSteakSandwich Sandwich)
+>(isa FiveDollarSteakSandwich Product)
+
+#>(capableOfDoing USER buys)
+
+#>(implies (buys ?AGENT ?THING) (possesses ?AGENT ?THING))

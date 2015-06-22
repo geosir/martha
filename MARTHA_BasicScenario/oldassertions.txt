@@ -1,0 +1,14 @@
+Context present = ContextImpl.findOrCreate("PresentMt");
+		
+		//Action of buying
+		FactImpl.findOrCreate("(implies (and (possesses ?AGENT ?THING) (isa ?THING Product)) (doneBy Buying ?AGENT) (affordToBuy ?AGENT ?THING))", "PresentMt");
+
+		user = KBIndividualImpl.findOrCreate(user_name);
+		target = KBIndividualImpl.findOrCreate(target_user);
+		sandwich = (KBIndividual) KBIndividualImpl.findOrCreate(sandwich_name);
+		sandwich.instantiates(KBCollectionImpl.get("Sandwich"), present);
+		sandwich.instantiates(KBCollectionImpl.get("Product"), present);
+		
+		FactImpl.findOrCreate("(basicPrice "+sandwich+" (Dollar-UnitedStates "+sandwich_price+"))", "PresentMt");
+		//FactImpl.findOrCreate( new SentenceImpl(KBPredicateImpl.get("valueOf"), new SentenceImpl(new SentenceImpl(KBFunctionImpl.get("QPQuantityFn"), KBTermImpl.get("MonetaryValue")), sandwich), new SentenceImpl(KBTermImpl.get("Dollar-UnitedStates"), sandwich_price)), present);
+				FactImpl.findOrCreate("(possesses "+target+" "+sandwich+")", "PresentMt");
