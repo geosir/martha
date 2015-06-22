@@ -1,0 +1,127 @@
++MARTHA
++USER
++ChicagoBotanicGardens
++CityOfGlencoeIL
++FiveDollarSteakSandwich
+
+=(isa USER Person)
+
+#TMF is short for TMF
+*say-TMF
+=(arity say-TMF 1)
+=(argIsa say-TMF 1  Thing)
+>(causes-PropProp (say-TMF ?THING) (knows USER ?THING))
+#>(exceptWhen (desires USER (hasDBAttribute MARTHA Repetition)) (preconditionFor-Props (not (knows MARTHA (knows USER ?THING))) (say-TMF ?THING)))
+#>(preconditionFor-Props (not (knows MARTHA (knows USER ?THING))) (say-TMF ?THING))
+>(implies (say-TMF ?THING) (knows USER ?THING))
+>(implies (say-TMF ?THING) (knows MARTHA (knows USER ?THING)))
+
+*query-TMF
+=(arity query-TMF 1)
+=(argIsa query-TMF 1 Thing)
+>(causes-PropProp (not (knows MARTHA (knows USER ?THING))) (query-TMF (knows USER ?THING)))
+>(causes-PropProp (query-TMF (knows USER ?THING)) (knows MARTHA (knows USER ?THING)))
+
+*driveTo
+=(arity driveTo 2)
+=(argIsa driveTo 1 Person)
+=(argIsa driveTo 2 Place)
+>(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
+
++WalkingShoes
+>(isa WalkingShoes Shoe)
+>(isa WalkingShoes Product)
+
+*walkTo
+=(arity walkTo 2)
+=(argIsa walkTo 1 Person)
+=(argIsa walkTo 2 Place)
+>(causes-PropProp (walkTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (walkTo USER ?PLACE)))
+>(preconditionFor-Props (possesses USER WalkingShoes) (walkTo USER ?PLACE))
+
+*tradeThisForThis
+=(arity tradeThisForThis 3)
+=(argIsa tradeThisForThis 1 Person)
+=(argIsa tradeThisForThis 2 Thing)
+=(argIsa tradeThisForThis 3 Thing)
+>(causes-PropProp (tradeThisForThis USER ??TRADEITEM ?RECEIVE) (possesses USER ?RECEIVE))
+>(preconditionFor-Props (possesses USER ?TRADEITEM) (tradeThisForThis USER ?TRADEITEM ??OTHERITEM))
+>(implies (tradeThisForThis USER ?TRADEITEM ?RECEIVE) (not (equals ?TRADEITEM ?RECEIVE)))
+
+*goalIsPersistent
+=(arity goalIsPersistent 2)
+=(argIsa goalIsPersistent 1 Thing)
+=(argIsa goalIsPersistent 2 TruthValue)
+
+#The value of a particular state to the Intelligent Agent.
+#Here, we want to maximize value to the USER, so everything 
+#is done relative to that.
+*stateValue
+=(arity stateValue 3)
+=(argIsa stateValue 1 IntelligentAgent)
+=(argIsa stateValue 2 Thing)
+=(argIsa stateValue 3 Thing)
+=(argIsa stateValue 4 Thing)
+
+
+>(stateValue USER (knows USER ?THING) 10)
+>(stateValue USER (driveTo USER ?PLACE) -5)
+>(stateValue USER (walkTo USER ?PLACE) -3)
+#>(implies (knows USER ?THING) (stateValue USER (knows USER ?THING) 5))
+#>(ConditionalPhraseFn (knows USER ?THING) (stateValue USER (knows USER ?THING) 5)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 10))
+#>(ConditionalPhraseFn (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5) (stateValue USER ?SOMETHING 20))
+#>(ConditionalPhraseFn (knows MARTHA (knows USER ??SOMETHING)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 5) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 15))
+
+#>(overrides (implies (knows USER ?THING) (stateValue USER (knows USER ?THING) 5)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 50))
+#>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5))
+>(implies (desires USER ?SOMETHING) (stateValue USER ?SOMETHING 20)))
+#>(overrides (implies (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5)) (implies (desires USER ?SOMETHING) (stateValue USER ?SOMETHING 20)))
+>(stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 15))
+#>(implies (knows MARTHA (knows USER ??SOMETHING)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 5))
+
+#>(implies (knows USER ?THING) (stateValue USER (knows USER ?THING) 5))
+#>(implies (not (knows USER ?SOMETHING)) (stateValue USER (knows USER ?SOMETHING) 10))
+#>(implies (not (knows MARTHA (knows USER ??SOMETHING))) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 15))
+#>(implies (knows MARTHA (knows USER ??SOMETHING)) (stateValue USER (knows MARTHA (knows USER ??SOMETHING)) 5))
+#>(implies (and (desires USER ?SOMETHING) (not ?SOMETHING)) (stateValue USER ?SOMETHING 20))
+#>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (stateValue USER ?SOMETHING 5))
+
+>(implies (knows USER ?SOMETHING) (knows MARTHA (knows USER ?SOMETHING)))
+
+=(isa ChicagoBotanicGardens Garden)
+=(placeInCity ChicagoBotanicGardens CityOfGlencoeIL)
+
+
+=(isa CityOfGlencoeIL City)
+=(cityInState CityOfGlencoeIL Illinois-State)
+
+>(preconditionFor-Props (wearsClothing USER ??APPROPRIATECLOTHING) (feelsEmotion USER (HighAmountFn Happiness)))
+>(implies (and (temperatureOfObject ?PLACE ?TEMPERATURE) (desires USER (at-UnderspecifiedLandmark USER ?PLACE)))(preconditionFor-Props (knows USER (temperatureOfObject ?PLACE ?TEMPERATURE)) (wearsClothing USER ??APPROPRIATECLOTHING)))
+
+>(implies (knows USER (weather ?PLACE SunnyArea)) (knows USER (temperatureOfObject ?PLACE Warm)))
+
+=(temperatureOfObject ChicagoBotanicGardens Cold)
+=(isa ChicagoBotanicGardens SunnyArea)
+
+=(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
+=(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
+=(desires USER (feelsEmotion USER (HighAmountFn Happiness)))
+=(goalImportance USER (desires USER (feelsEmotion USER (HighAmountFn Happiness))) mediumAmountOf)
+=(goalIsPersistent (desires USER (feelsEmotion USER (HighAmountFn Happiness))) True)
+
+#Should the affinity to correct the user be taught here, or hardcoded in the MARTHA software?
+#>(implies (and (temperatureOfObject ?PLACE ?TEMP) (knows USER (temperatureOfObject ?PLACE ?WRONGTEMP) (different ?TEMP ?WRONGTEMP))) (and (say-TMF "HEY! Despite ")
+
+=(knows USER (isa ChicagoBotanicGardens SunnyArea))
+
+=(isa FiveDollarSteakSandwich Sandwich)
+=(isa FiveDollarSteakSandwich Product)
+=(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
+
+>(implies (basicPrice ?PRODUCT ?VALUE) (preconditionFor-Props (knows ?AGENT (basicPrice ?PRODUCT ?VALUE)) (buys ?AGENT ?PRODUCT)))
+>(causes-PropProp (buys ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
+>(causes-PropProp (steals ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
+
+>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (unassertAnAssertionInCyc MARTHA (desires USER ?SOMETHING)))
