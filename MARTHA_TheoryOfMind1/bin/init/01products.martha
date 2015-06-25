@@ -1,0 +1,43 @@
+### DEFINE CONSTANTS ###
+
+#A *specific* $5 steak sandwich. Delicious!
++FiveDollarSteakSandwich
+=(isa FiveDollarSteakSandwich Sandwich)
+=(isa FiveDollarSteakSandwich Product)
+#The FiveDollarSteakSandwich costs $5.00
+=(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
+
+#A *specific* pair of walking shoes.
++WalkingShoes
+=(isa WalkingShoes Shoe)
+=(isa WalkingShoes Product)
+
+### DEFINE FUNCTIONS ###
+
+#You can trade things. Takes 3 args, the person, the given item, and the received item.
+*tradeThisForThis
+=(arity tradeThisForThis 3)
+=(argIsa tradeThisForThis 1 Person)
+=(argIsa tradeThisForThis 2 Thing)
+=(argIsa tradeThisForThis 3 Thing)
+#Trading an item causes you to possess the received item.
+>(causes-PropProp (tradeThisForThis USER ??TRADEITEM ?RECEIVE) (possesses USER ?RECEIVE))
+#A precondition for this is that the user has the given item to give.
+>(preconditionFor-Props (possesses USER ?TRADEITEM) (tradeThisForThis USER ?TRADEITEM ??OTHERITEM))
+#The given item must not be the same as the trade item (or you get loops).
+>(implies (tradeThisForThis USER ?TRADEITEM ?RECEIVE) (not (equals ?TRADEITEM ?RECEIVE)))
+
+### UTILITY VALUES ###
+>(utilityValue USER ??NOW (buys USER ??PRODUCT) 0)
+>(utilityValue USER ??NOW (steals USER ??PRODUCT) -100)
+
+### OTHER RULES ###
+
+#A precondition for buying a product is knowing its price.
+>(implies (basicPrice ?PRODUCT ?VALUE) (preconditionFor-Props (knows ?AGENT (basicPrice ?PRODUCT ?VALUE)) (buys ?AGENT ?PRODUCT)))
+#One of the ways to possess a product is the buy it. The other is to steal it.
+
+>(causes-PropProp (buys ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
+>(causes-PropProp (steals ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
+
+

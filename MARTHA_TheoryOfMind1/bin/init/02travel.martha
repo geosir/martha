@@ -1,0 +1,57 @@
+### DEFINE CONSTANTS ###
+
+#A Chicago suburb
++CityOfGlencoeIL
+#Glencoe is a city in Illinois.
+=(isa CityOfGlencoeIL City)
+=(cityInState CityOfGlencoeIL Illinois-State)
+
+#A great garden in the Chicago suburbs.
++ChicagoBotanicGardens
+#The CBGs are a garden, and they are in Glencoe, IL.
+=(isa ChicagoBotanicGardens Garden)
+=(placeInCity ChicagoBotanicGardens CityOfGlencoeIL)
+
+### DEFINE FUNCTIONS ###
+
+#Concept of driving to a certain place. Takes 2 args, a person and a destination.
+*driveTo
+=(arity driveTo 2)
+=(argIsa driveTo 1 Person)
+=(argIsa driveTo 2 Place)
+#Driving somwhere causes the person to be at the place.
+>(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#The precondition for driving somewhere is knowing where it is.
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
+
+#Create concept of walkinig to a place, takes args of a person and a place
+*walkTo
+=(arity walkTo 2)
+=(argIsa walkTo 1 Person)
+=(argIsa walkTo 2 Place)
+#Walking somewhere will be you be at that place
+>(causes-PropProp (walkTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#A precondition for walking somewhere is knowing where it is.
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (walkTo USER ?PLACE)))
+#Another precondition is that you have shoes.
+>(preconditionFor-Props (possesses USER WalkingShoes) (walkTo USER ?PLACE))
+
+### UTILITY VALUES ###
+
+#Travel costs
+>(utilityValue USER ??NOW (driveTo USER ?PLACE) -5)
+>(utilityValue USER ??NOW (walkTo USER ?PLACE) -10)
+
+### OTHER RULES ###
+
+#A precondition for being happy is wearing appropriate clothing.
+>(preconditionFor-Props (wearsClothing USER ??APPROPRIATECLOTHING) (feelsEmotion USER (HighAmountFn Happiness)))
+#If the user is going outside, this means that the user would want to know the weather outside and what to wear in order to be happy.
+>(implies (and (temperatureOfObject ?PLACE ?TEMPERATURE) (desires USER (at-UnderspecifiedLandmark USER ?PLACE)))(preconditionFor-Props (knows USER (temperatureOfObject ?PLACE ?TEMPERATURE)) (wearsClothing USER ??APPROPRIATECLOTHING)))
+
+#If the user knows that the weather at a place is sunny, he will assume it is warm.
+>(implies (knows USER (weather ?PLACE SunnyArea)) (beliefs USER (temperatureOfObject ?PLACE Warm)))
+
+#Should the affinity to correct the user be taught here, or hardcoded in the MARTHA software?
+#>(implies (and (temperatureOfObject ?PLACE ?TEMP) (knows USER (temperatureOfObject ?PLACE ?WRONGTEMP) (different ?TEMP ?WRONGTEMP))) (and (say-TMF "HEY! Despite ")
+

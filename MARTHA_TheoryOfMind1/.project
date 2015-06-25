@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/init</name>
+			<type>2</type>
+			<location>C:/Users/geo/Documents/development/MARTHA/MARTHA_TheoryOfMind1/init</location>
+		</link>
+	</linkedResources>
 </projectDescription>

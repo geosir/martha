@@ -1,0 +1,32 @@
+####################################
+# This file is for initializing
+# facts and assertions needed
+# at the start of a SPECIFIC
+# MARTHA run. These should not be 
+# UNIVERSAL truths. Those shoul go
+# into an martha concept file.
+####################################
+
+#All assertions here are made into the default context.
+@@
+
+### MISC ###
+
+#The user wants to go to the CBGs.
+=(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
+#This is a very important desire.
+=(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
+
+#The user wants to be happy
+=(desires USER (feelsEmotion USER (HighAmountFn Happiness)))
+#This is a medium importance desire, since it's kindof vauge.
+=(goalImportance USER (desires USER (feelsEmotion USER (HighAmountFn Happiness))) mediumAmountOf)
+#But it is a persistent one that informs all actions.
+=(goalIsPersistent (desires USER (feelsEmotion USER (HighAmountFn Happiness))) True)
+
+#MARTHA knows that the CBGs aree cold. But they are sunny.
+=(temperatureOfObject ChicagoBotanicGardens Cold)
+=(isa ChicagoBotanicGardens SunnyArea)
+
+#The user knows that the CBGs are sunny.
+=(knows USER (isa ChicagoBotanicGardens SunnyArea))
