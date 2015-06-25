@@ -1,7 +1,3 @@
-### CYC INTERNALS ###
-
->(implies (and (different ?HIGH ?LOW) (termOfUnit ?NAT (IntegerFromToFn ?LOW ?HIGH))) (integerRange ?NAT (Unity ?LOW ?HIGH)))
-
 ### DEFINE CONSTANTS ###
 
 #MARTHA, the program
@@ -62,44 +58,15 @@
 =(argIsa baseUtilityValue 2 Thing)
 =(argIsa baseUtilityValue 3 Thing)
 
-#Store the SECOND-RESOLUTION assertion time of actions.
-*exactAssertTime
-=(arity exactAssertTime 2)
-=(argIsa exactAssertTime 1 Thing)
-=(argIsa exactAssertTime 2 Date)
-
-#Given an event, return the utility yield decimal at a certain time for an event.
-#Syntax: (utilityYield <event> <current time> <yield (decimal)>)
-*utilityYield
-=(arity utilityYield 3)
-=(isa utilityYield FunctionalPredicate)
-=(functionalInArgs utilityYield 2)
-=(argIsa utilityYield 1 Thing)
-=(argIsa utilityYield 2 Date)
-=(argIsa utilityYield 3 ScalarQuantity)
-
-#Should this be in Cyc or JAVA?
-#utilityYield BEFORE an action. Yield increases as action approaches.
-#Return % Yield based on sigmoid function U(x) = 1/(1+e^((x-7200)/(2400))) where x is the time difference between ?NOW and ?DATE.
-#This is an actual-scale curve. Using testing curve for now.
-#>(implies (and (exactAssertTime ?ACTION ?DATE) (startsAfterEndingOf ?DATE ?NOW) (duration (TimeIntervalInclusiveFn ?NOW ?DATE) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn ?TIMEUNTIL 7200) 2400)))))) (utilityYield ?ACTION ?NOW ?QUANTITY))
->(implies (and (knownSentence (exactAssertTime ?ACTION ?DATE)) (startsAfterEndingOf ?DATE ?NOW) (duration (TimeIntervalInclusiveFn ?NOW ?DATE) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn ?TIMEUNTIL 30) 5)))))) (utilityYield ?ACTION ?NOW ?QUANTITY))
-
-#utilityYield AFTER an action. Yield increases as time passes after the action.
-#Return % Yield based on sigmoid function U(x) = 1/(1+e^((80000-x)/(5000))) where x is the time difference between ?DATE and ?NOW.
-#This is an actual-scale curve. Using testing curve for now.
-#>(implies (and (exactAssertTime ?ACTION ?DATE) (startsAfterEndingOf ?NOW ?DATE) (duration (TimeIntervalInclusiveFn ?DATE ?NOW) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn 80000 ?TIMEUNTIL) 5000)))))) (utilityYield ?ACTION ?NOW ?QUANTITY))
->(implies (and (knownSentence (exactAssertTime ?ACTION ?DATE)) (startsAfterEndingOf ?NOW ?DATE) (duration (TimeIntervalInclusiveFn ?DATE ?NOW) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn 30 ?TIMEUNTIL) 5)))))) (utilityYield ?ACTION ?NOW ?QUANTITY))
-
 ### UTILITY VALUES ###
 
 #Set the utility values of KNOWS
 >(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (knows USER ?THING) 10))
-#>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
 #>(implies (and ?THING (unknownSentence (knows MARTHA (knows USER ?THING)))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 10))
 #>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
->(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 10))
-#>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) -10))
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 5))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) -10))
 
 #Utility values of DESIRES
 >(implies (and (desires USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER ?SOMETHING 20))

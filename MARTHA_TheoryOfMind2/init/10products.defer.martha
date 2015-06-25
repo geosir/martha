@@ -28,16 +28,17 @@
 >(implies (tradeThisForThis USER ?TRADEITEM ?RECEIVE) (not (equals ?TRADEITEM ?RECEIVE)))
 
 ### UTILITY VALUES ###
->(utilityValue USER ??NOW (buys USER ??PRODUCT) 0)
->(utilityValue USER ??NOW (steals USER ??PRODUCT) -100)
+>(baseUtilityValue USER (buys USER ??PRODUCT) 0)
+>(baseUtilityValue USER (steals USER ??PRODUCT) -10)
+>(baseUtilityValue USER (isa USER Criminal) -100)
 
 ### OTHER RULES ###
 
 #A precondition for buying a product is knowing its price.
 >(implies (basicPrice ?PRODUCT ?VALUE) (preconditionFor-Props (knows ?AGENT (basicPrice ?PRODUCT ?VALUE)) (buys ?AGENT ?PRODUCT)))
 #One of the ways to possess a product is the buy it. The other is to steal it.
-
 >(causes-PropProp (buys ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
 >(causes-PropProp (steals ?AGENT ?PRODUCT) (possesses ?AGENT ?PRODUCT))
+>(causes-PropProp (steals ?AGENT ??PRODUCT) (isa ?AGENT Criminal))
 
 

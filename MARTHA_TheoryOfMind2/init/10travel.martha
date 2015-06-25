@@ -33,14 +33,12 @@
 >(causes-PropProp (walkTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
 #A precondition for walking somewhere is knowing where it is.
 >(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (walkTo USER ?PLACE)))
-#Another precondition is that you have shoes.
->(preconditionFor-Props (possesses USER WalkingShoes) (walkTo USER ?PLACE))
 
 ### UTILITY VALUES ###
 
 #Travel costs
->(utilityValue USER ??NOW (driveTo USER ?PLACE) -5)
->(utilityValue USER ??NOW (walkTo USER ?PLACE) -10)
+>(baseUtilityValue USER (driveTo USER ?PLACE) -10)
+>(baseUtilityValue USER (walkTo USER ?PLACE) 0)
 
 ### OTHER RULES ###
 
@@ -51,7 +49,3 @@
 
 #If the user knows that the weather at a place is sunny, he will assume it is warm.
 >(implies (knows USER (weather ?PLACE SunnyArea)) (beliefs USER (temperatureOfObject ?PLACE Warm)))
-
-#Should the affinity to correct the user be taught here, or hardcoded in the MARTHA software?
-#>(implies (and (temperatureOfObject ?PLACE ?TEMP) (knows USER (temperatureOfObject ?PLACE ?WRONGTEMP) (different ?TEMP ?WRONGTEMP))) (and (say-TMF "HEY! Despite ")
-

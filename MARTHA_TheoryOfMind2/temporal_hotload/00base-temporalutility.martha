@@ -1,0 +1,66 @@
+### DEFINE CONSTANTS ###
+
+#These are universal.
+@BaseKB
+
+#MARTHA, the program
++MARTHA
+=(isa MARTHA IntelligentAgent)
+
+#USER, the MARTHA User.
++USER
+=(isa USER Person)
+
+### DEFINE MARTHA FUNCTIONS ###
+
+#Given an event, return the utility yield decimal at a certain time for an event.
+#Syntax: (utilityYield <event time> <current time> <yield (decimal)>)
+*utilityYield
+=(arity utilityYield 3)
+=(isa utilityYield FunctionalPredicate)
+=(functionalInArgs utilityYield 2)
+=(argIsa utilityYield 1 Date)
+=(argIsa utilityYield 2 Date)
+=(argIsa utilityYield 3 ScalarQuantity)
+
+#utilityYield BEFORE an action. Yield increases as action approaches.
+#Return % Yield based on sigmoid function U(x) = 1/(1+e^((x-7200)/(2400))) where x is the time difference between ?NOW and ?DATE.
+#This is an actual-scale curve. Using testing curve for now.
+#>(implies (and (startsAfterEndingOf ?DATE ?NOW) (duration (TimeIntervalInclusiveFn ?NOW ?DATE) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn ?TIMEUNTIL 7200) 2400)))))) (utilityYield ?DATE ?NOW ?QUANTITY))
+#>(implies (and (startsAfterEndingOf ?DATE ?NOW) (duration (TimeIntervalInclusiveFn ?NOW ?DATE) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn ?TIMEUNTIL 30) 5)))))) (utilityYield ?DATE ?NOW ?QUANTITY))
+(implies (and (exactAssertTime ?ACTION ?DATE) (startsAfterEndingOf ?DATE ?NOW) (duration (TimeIntervalInclusiveFn ?NOW ?DATE) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn ?TIMEUNTIL 30) 5)))))) (utilityYield ?ACTION ?NOW ?QUANTITY))
+
+#utilityYield AFTER an action. Yield increases as time passes after the action.
+#Return % Yield based on sigmoid function U(x) = 1/(1+e^((80000-x)/(5000))) where x is the time difference between ?DATE and ?NOW.
+#This is an actual-scale curve. Using testing curve for now.
+#>(implies (and (startsAfterEndingOf ?NOW ?DATE) (duration (TimeIntervalInclusiveFn ?DATE ?NOW) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn 80000 ?TIMEUNTIL) 5000)))))) (utilityYield ?DATE ?NOW ?QUANTITY))
+#>(implies (and (startsAfterEndingOf ?NOW ?DATE) (duration (TimeIntervalInclusiveFn ?DATE ?NOW) (SecondsDuration ?TIMEUNTIL)) (evaluate ?QUANTITY (QuotientFn 1 (PlusFn 1 (ExponentFn 2.71828 (QuotientFn (DifferenceFn 30 ?TIMEUNTIL) 5)))))) (utilityYield ?DATE ?NOW ?QUANTITY))
+
+#The BASE utility value of a particular state to the Intelligent Agent.
+#Syntax: (baseUtilityValue <subjective agent> <action> <base utility>)
+*baseUtilityValue
+=(arity baseUtilityValue 3)
+=(argIsa baseUtilityValue 1 IntelligentAgent)
+=(argIsa baseUtilityValue 2 Thing)
+=(argIsa baseUtilityValue 3 Thing)
+
+#Store the SECOND-RESOLUTION assertion time of actions.
+*exactAssertTime
+=(arity exactAssertTime 2)
+=(argIsa exactAssertTime 1 Thing)
+=(argIsa exactAssertTime 2 Date)
+
+#The TEMPORAL utility value of a particular state to the Intelligent Agent.
+#Here, we want to maximize value to the USER, so everything 
+#is done relative to that.
+#Syntax: (utilityValue <subjective agent> <time> <action> <utility at time>)
+*utilityValue
+=(arity utilityValue 4)
+=(argIsa utilityValue 1 IntelligentAgent)
+=(argIsa utilityValue 2 Date)
+=(argIsa utilityValue 3 Thing)
+=(argIsa utilityValue 4 Thing)
+>(implies (and (baseUtilityValue ?AGENT ?ACTION ?BASEVALUE) (knownSentence (exactAssertTime ?ACTION ?DATE)) (exactAssertTime ?ACTION ?DATE) (utilityYield ?DATE ?TIME ?YIELD) (evaluate ?VALUE (TimesFn ?BASEVALUE ?YIELD))) (utilityValue ?AGENT ?TIME ?ACTION ?VALUE))
+>(implies (and (baseUtilityValue ?AGENT ?ACTION ?BASEVALUE) (unknownSentence (exactAssertTime ?ACTION ?DATE))) (utilityValue ?AGENT ?TIME ?ACTION ?BASEVALUE))
+
+### UTILITY VALUES ###
