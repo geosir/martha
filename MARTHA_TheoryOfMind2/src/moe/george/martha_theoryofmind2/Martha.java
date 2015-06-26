@@ -10,7 +10,7 @@
  * through this class.
  *==================================================*/
 
-package moe.george.martha_theoryofmind1;
+package moe.george.martha_theoryofmind2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -56,7 +55,8 @@ public class Martha {
 	// found.
 	private String assrtctx = "BaseKB"; // The context in which to make
 	// assertions to Cyc
-	private String defaultctx = assrtctx; //The default context (to revert to after the context changes)
+	private String defaultctx = assrtctx; // The default context (to revert to
+											// after the context changes)
 
 	// Parameters for the query interface.
 	// MAX-TRANDFORMATION-DEPTH 10 specifies
@@ -78,11 +78,17 @@ public class Martha {
 	private int max_forwards_depth = 10; // Maximum forward steps in the plan
 	private int max_backwards_depth = -5; // Maximum backwards dependencies in
 											// the plan
-	private int legitimacy_threshold = 25; // Minimum score needed for a plan to
+	private int legitimacy_threshold = 45; // Minimum score needed for a plan to
 											// be even considered for execution.
-	
-	//An object to run MARTHA's consciousness
+
+	private int max_martha_depth = 2; // Maxium recursive spawns of Martha
+										// engines.
+
+	// An object to run MARTHA's consciousness
 	MarthaConsciousness mc;
+
+	// An object to store MARTHA's simulation of the user.
+	Martha user;
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException,
@@ -108,13 +114,15 @@ public class Martha {
 		// call
 		// Create this context in the Cyc KB.
 		assrtctx = context;
-		defaultctx = assrtctx; //Store the default context;
+		defaultctx = assrtctx; // Store the default context;
 		ContextImpl.findOrCreate(context);
+
+		// user = new Martha("userctx_"+context);
 	}
 
 	// Method to load pre-coded knowledge into MARTHA from file.
 	public void initFromFile(String init_file_path) throws IOException {
-		int linenumber = 0; //Counter for the line number.
+		int linenumber = 0; // Counter for the line number.
 		initpath = init_file_path; // Set file path to one specified
 		Charset charset = Charset.forName("US-ASCII"); // Specify the charset
 		// which the file uses
@@ -125,13 +133,16 @@ public class Martha {
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			linenumber++;
-			
-			if(interpret(line).contains("ERROR")) // Interpret the line AND catch error, at the same time!
+
+			if (interpret(line).contains("ERROR")) // Interpret the line AND
+													// catch error, at the same
+													// time!
 			{
-				System.out.println("initFromFile: Error at line "+linenumber+".");
+				System.out.println("initFromFile: Error at line " + linenumber
+						+ ".");
 			}
-			
-			System.out.println(line);
+
+			// System.out.println(line);
 		}
 
 		// Close the reader to free up resources.
@@ -163,8 +174,7 @@ public class Martha {
 			// character in line).
 
 			if (line.length() > 1) {
-				switch(line.substring(0, 1))
-				{
+				switch (line.substring(0, 1)) {
 				// > : assertion (variables allowed)
 				case ">":
 					String ops = line.substring(1);
@@ -178,8 +188,8 @@ public class Martha {
 				// X : unassert assertion
 				case "X":
 					ops = line.substring(1);
-					Assertion deleteassert = AssertionImpl.findOrCreate(
-							ops, assrtctx);
+					Assertion deleteassert = AssertionImpl.findOrCreate(ops,
+							assrtctx);
 					deleteassert.delete();
 					System.out.println("DELETED");
 					break;
@@ -219,7 +229,7 @@ public class Martha {
 								String result = queryResults.getKBObject(v)
 										.toString();
 								results.add(result);
-								//System.out.println(result);
+								// System.out.println(result);
 							}
 						}
 					}
@@ -249,12 +259,9 @@ public class Martha {
 				// @ : Set new assertion and query context
 				case "@":
 					// "@@" for default context.
-					if(line.substring(1,2).equals("@"))
-					{
+					if (line.substring(1, 2).equals("@")) {
 						assrtctx = defaultctx;
-					}
-					else
-					{
+					} else {
 						assrtctx = line.substring(1);
 					}
 					ContextImpl.findOrCreate(assrtctx);
@@ -280,7 +287,7 @@ public class Martha {
 			System.out
 					.println("Warning: Could not interpret \"" + line + "\".");
 			results.add("ERROR");
-			return(results);
+			return (results);
 		}
 
 		// Return ArrayList with results.
@@ -327,15 +334,16 @@ public class Martha {
 			// ^ : special MARTHA escape command
 			else if (input.substring(0, 1).equals("^")) {
 				String command = input.substring(1);
-				switch(command)
-				{
+				switch (command) {
 				case "toomuch":
-					legitimacy_threshold+=5;
-					System.out.println("New threshold: "+legitimacy_threshold);
+					legitimacy_threshold += 5;
+					System.out
+							.println("New threshold: " + legitimacy_threshold);
 					break;
 				case "toolittle":
-					legitimacy_threshold-=5;
-					System.out.println("New threshold: "+legitimacy_threshold);
+					legitimacy_threshold -= 5;
+					System.out
+							.println("New threshold: " + legitimacy_threshold);
 					break;
 				default:
 				}
@@ -343,8 +351,7 @@ public class Martha {
 		}
 		// Otherwise, do nothing. No meaningful input.
 
-		for(String r : results)
-		{
+		for (String r : results) {
 			System.out.println(r);
 		}
 		// Return interpret results.
@@ -356,291 +363,8 @@ public class Martha {
 	 * initiated by planGenerally, which fetches the goals from the user's
 	 * desires and makes them a target of MARTHA's backwards search.
 	 *****************/
-	//Do a bunch of short forward searches based on content from recent interactions with interpret.
-	public void planGenerally() {
-
-		// Possible actions that MARTHA can do to start a line of planning
-		String[] possible_actions = { "(say-TMF ?SOMETHING)",
-				"(query-TMF ?SOMETHING)", "(contradict-TMF ?SOMETHING)" };
-
-		// Possible facts that can fed into the actions to generate a valid
-		// inital action
-		// Unused.
-		ArrayList<String> feed = new ArrayList<String>();
-		
-		// Get feed from the last few entries in the logbook.
-		/*for (int i = 1; i <= 20 && i < logbook.size(); i++) {
-			feed.addAll(Arrays.asList((logbook.get(logbook.size() - i)[0].split("\\s|\\(|\\)"))));
-		}*/
-		
-		//Clean up feed, removing all query variables, ERROR, and IMPOSSIBLE messages.
-		Iterator<String> it = feed.iterator();
-		while(it.hasNext())
-		{
-			if(it.next().equals("IMPOSSIBLE|ERROR|\\?\\w+"))
-			{
-				it.remove();
-			}
-		}
-
-		feed.add("ChicagoBotanicGardens");
-		feed.add("FiveDollarSteakSandwich");
-		
-		// For each possible action, perform a forwards search with the
-		// action-fact pair generated above.
-		
-		for(String f : feed)
-		{
-			for (String p : possible_actions) {
-				//System.out.println(f);
-				String seed = "(?PRED " + f + " ?FACT)";
-				//System.out.println(generate(seed));
-				forwardsSearch(
-					"(" + getKeyWords(p).get(0) + " " + generate(seed) + ")",
-					new LinkedHashSet<String>(), 0);
-			}
-			
-		}
-	}
-	
-	//Do long and deep searches based on random facts within Cyc.
-	public void dream() {
-		forwardsSearch(generate("(?PRED ?THING ?FACT)"), new LinkedHashSet<String>(), 0);
-	}
-	
-	public void planForGoals() {
-		
-		//Query the database to find the user's desires.
-		ArrayList<String> goals = interpret("?(desires USER ?DESIRES)");
-		
-		//For each desire (which is a goal in this case), evaluate the possible paths to the goal.
-		for (String g : goals) {
-			LinkedHashSet<String> path = backwardsSearch(g, new LinkedHashSet<String>(), 0);
-			if(!(path.contains("ERROR") || path.contains("IMPOSSIBLE")))
-			{
-				queueEvaluation(path);
-			}
-		}
-	}
-
-	public String generate(String seed) {
-		// List to store facts.
-		ArrayList<String> facts = new ArrayList<String>();
-
-		try {
-
-			// Look for facts and predicates about the subject, using the
-			// expressions from the query interpreter. Modifed to replace
-			// ?PRED and ?FACT above with actual results.
-			Query q = new Query(seed, "InferencePSC", queryparams);
-			Collection<Variable> queryVars = q.getQueryVariables();
-			KBInferenceResultSet queryResults = q.getResultSet();
-			if (!(queryResults.getCurrentRowCount() == 0)) {
-				while (queryResults.next()) {
-					String temp = seed;
-					for (Variable v : queryVars) {
-
-						String result = queryResults.getKBObject(v).toString();
-						temp = temp.replace(v.toString(), result); // Replace
-																	// ?PRED and
-																	// ?FACT
-																	// with
-																	// actual
-																	// results.
-					}
-					facts.add(temp);
-				}
-			}
-
-			// Of the facts, get a random one.
-			seed = facts.get(new Random().nextInt(facts.size()));
-
-			// Free up resources.
-			queryResults.close();
-			q.close();
-		} catch (Exception e) {
-		}
-
-		// Return random seed fact.
-		return seed;
-	}
-
-	// VERY IMPORTANT: This is the recursive backwards search algorithm. It
-	// recursively looks for dependenceies for actions and goals.
-	public LinkedHashSet<String> backwardsSearch(String goal,
-			LinkedHashSet<String> path, int depth) {
-
-		// System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
-
-		// An ArrayList to store the current cumulative chain of actions found
-		// thus far.
-		// This is deepcloned from the given path in order to start a new branch
-		// in the recursion tree.
-		LinkedHashSet<String> newpath = deepClone(path);
-
-		// Add the current goal to the path.
-		newpath.add(goal);
-
-		// Get actions leading to the goal, and get preconditions for the goal.
-		ArrayList<String> actions = getActionsForPostconditions(goal);
-		ArrayList<String> preconditions = getPreconditionsForAction(goal);
-
-		// If we aren't exceeding the max dependency depth...
-		if (depth >= max_backwards_depth) {
-			// For each action found, find dependencies for those.
-			for (String a : actions) {
-				/*XXX: THERE IS A LOGICAL PROBLEM HERE!
-				* Not all actions are necessary for a precondition to be fulfilled.
-				* Only one is.
-				* This FOR loop here loops through all of them and necessitates them.
-				* The new path should therefore be placed elsewhere, this would just be 
-				* a backwards branch.
-				* (evidence: buys always goes with steals. Not optimal...)
-				*/
-				
-				//Search backwards for action dependencies, starting a new branch each time.
-				newpath = backwardsSearch(a, newpath, depth - 1);
-				//break;
-				/*TODO: Still poor logic here! Each action needs to spawn a whole new search tree!
-				 *Right now it doesn't! Right now it just chooses the first action!!!
-				 */
-			}
-
-			// For each precondition found...
-			for (String p : preconditions) {
-
-				// If the precondition isn't already fulfilled...
-				if (!getTruthOf(p)) {
-
-					// Do a backwards search to find actions to fulfill
-					// those preconditions.
-					newpath = backwardsSearch(p, newpath, depth - 1);
-
-					// If the result indicates that this is the root of the
-					// search,
-					// that is, there are no actions to fulfill this
-					// precondition...
-					if (newpath.contains("ROOT" + (depth - 1))) {
-						newpath.add("IMPOSSIBLE"); // Mark this line of search
-													// as impossible
-
-						// System.out.println(">>>>>> IMPOSSIBLE - PRECONDITION CANNOT BE MET <<<<<<     "+p);
-						return newpath; // Abort the recursion!
-					}
-				}
-			}
-
-			// If there are no more actions and no more preconditions,
-			// We've reached a root.
-			if (actions.isEmpty() && preconditions.isEmpty()) {
-				newpath.add("ROOT" + depth);
-				// Just curious what a new forward search would do here.
-				// Need to put this somewhere useful
-				// it would be nice to spawn forward searches from found roots,
-				// but it spawns an endless amount through looping!
-				// forwardsSearch(goal, new LinkedHashSet<String>(), 0);
-
-			}
-		} else {
-			// If there are still unfilfilled preconditions
-			if (!preconditions.isEmpty()) {
-				newpath.add("IMPOSSIBLE"); // Mark this line of search as
-											// impossible.
-				// System.out.println(">>>>>> IMPOSSIBLE - REACHED MAX DEPTH <<<<<<");
-			}
-		}
-
-		// Return results.
-		return newpath;
-	}
-
-	// Forwards search algorithm. Given a goal, this looks for what actions can
-	// stem from it into the future.
-	public void forwardsSearch(String goal, LinkedHashSet<String> path,
-			int depth) {
-		// System.out.println(">>> FORWARDS    : " + goal + " " + depth);
-
-		// An ArrayList to store the current cumulative chain of actions found
-		// thus far.
-		// This is deepcloned from the given path in order to start a new branch
-		// in the recursion tree.
-		LinkedHashSet<String> newpath = deepClone(path);
-		// Add the current goal to the chain.
-		newpath.add(goal);
-
-		// If we haven't exceeded the max forward search length...
-		if (depth <= max_forwards_depth) {
-			// Get the conditions fulfilled by the current situation.
-			ArrayList<String> conditions = resultsInConditions(goal);
-
-			// Find the actions enabled by the current situation
-			ArrayList<String> actions = enablesActions(goal);
-
-			//Abort if path is impossible.
-			if (newpath.contains("IMPOSSIBLE"))
-			{
-				return;
-			}
-			
-			// For each action, do a backwards search for dependencies.
-			for (String a : actions) {
-				// For each possible action chain, find dependencies, then find where it can lead.
-				forwardsSearch(a, backwardsSearch(a, newpath, depth+1), depth+1);
-			}
-
-			// For each condition, do a forwards search, e.g. for actions that
-			// they enable.
-			for (String c : conditions) {
-				forwardsSearch(c, newpath, depth + 1);
-			}
-
-			// If there are no more actions to take,
-			// We've reached the end. Queue the path for evaluation.
-			if (actions.isEmpty()) {
-				queueEvaluation(newpath);
-			}
-		}
-
-		// If we've reached the end, and the chain isn't impossible, queue it
-		// for evaluation.
-		else {
-			if (!newpath.contains("IMPOSSIBLE"))
-				queueEvaluation(newpath);
-		}
-	}
-
-	// This is an abstraction of a query that gets a list of actions which cause
-	// the
-	// specified postconditions.
-	public ArrayList<String> getActionsForPostconditions(String postconditions) {
-		ArrayList<String> actions = interpret("?(causes-PropProp ?ACTIONS "
-				+ postconditions + ")");
-		return actions;
-	}
-
-	// This is an abstraction of a query that gets a list of preconditions that
-	// are required by the specified action.
-	public ArrayList<String> getPreconditionsForAction(String action) {
-		ArrayList<String> preconditions = interpret("?(preconditionFor-Props ?CONDITION "
-				+ action + ")");
-		return preconditions;
-	}
-
-	// This is an abstraction of a query that gets a list of conditions that
-	// result from a specific situation (action).
-	public ArrayList<String> resultsInConditions(String action) {
-		ArrayList<String> postconditions = interpret("?(causes-PropProp "
-				+ action + " ?CONDITIONS)");
-		return postconditions;
-	}
-
-	// This is an abstraction of a query that gets a list of actions that
-	// are enabled by a specific situation (condition).
-	public ArrayList<String> enablesActions(String precondition) {
-		ArrayList<String> preconditions = interpret("?(preconditionFor-Props "
-				+ precondition + " ?ACTIONS)");
-		return preconditions;
-	}
+	// Do a bunch of short forward searches based on content from recent
+	// interactions with interpret.
 
 	// This is an abstraction of a query that returns the importance of a goal,
 	// as specified in the Cyc KB.
@@ -668,6 +392,24 @@ public class Martha {
 
 		// Return that quantity.
 		return level;
+	}
+
+	public void planGenerally() {
+		try {
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, 0);
+			martha_p.planGenerally();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void planForGoals() {
+		try {
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, 0);
+			martha_p.planForGoals();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	// Method to see if a goal is persistent (should not be unasserted
@@ -756,12 +498,12 @@ public class Martha {
 			Pattern p = Pattern
 					.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 			Matcher m = p.matcher(action);
-			
-			System.out.println("ACTION("+getUtility(action)+"): "+action);
 
-			//Boolean to store whether or not the action is to be asserted.
+			// System.out.println("ACTION("+getUtility(action)+"): "+action);
+
+			// Boolean to store whether or not the action is to be asserted.
 			boolean shouldassert = true;
-			
+
 			// If there is a match...
 			if (m.matches()) {
 
@@ -776,9 +518,9 @@ public class Martha {
 					System.out.println("MARTHA>>> " + m.group(2));
 					System.out.println("=================================");
 					System.out.println();
-					
+
 					state = 0;
-					
+
 				}
 				// If the function expression is query-TMF...
 				// SYNTAX: (query-TMF <thing to be asked>)
@@ -796,37 +538,33 @@ public class Martha {
 													// user respond to the
 													// question.
 					state = 1; // Pending user input state.
-				}
-				else if (m.group(1).equals("contradict-TMF")) {
+				} else if (m.group(1).equals("contradict-TMF")) {
 
 					// Ask the user what needs to be asked.
 					System.out.println();
 					System.out.println("=================================");
-					System.out.println("MARTHA>>> Hey! " + m.group(2) + " is not true!");
+					System.out.println("MARTHA>>> Hey! " + m.group(2)
+							+ " is not true!");
 					System.out.println("=================================");
 					System.out.println();
-					
+
 					state = 0;
-				}
-				else
-				{
-					//No match, don't assert.
+				} else {
+					// No match, don't assert.
 					shouldassert = false;
 				}
-			}
-			else
-			{
-				//no match, don't assert.
+			} else {
+				// no match, don't assert.
 				shouldassert = false;
 			}
 
-			if(shouldassert)
-			{
-				//Assert that it has been done.
+			if (shouldassert) {
+				// Assert that it has been done.
 				interpret(">" + action);
-				interpret(">(exactAssertTime "+action+" (IndexicalReferentFn Now-Indexical))");
+				interpret(">(exactAssertTime " + action
+						+ " (IndexicalReferentFn Now-Indexical))");
 			}
-			
+
 			// Get the next action
 			action = getEnqueuedAction();
 		}
@@ -881,7 +619,7 @@ public class Martha {
 				// Add up the value of all actions in the plan
 				for (String s : a) {
 					current_value = getUtility(s) + current_value;
-					//System.out.println("ACTION("+getUtility(s)+"): "+s);
+					// System.out.println("ACTION("+getUtility(s)+"): "+s);
 				}
 
 				// If the plan is of equal or higher value of the highest value,
@@ -892,9 +630,8 @@ public class Martha {
 				} else if (current_value == highest_value) {
 					candidate.addAll(a);
 				}
-				if(current_value != 0)
-				{
-					System.out.println("<"+current_value+"> "+a);
+				if (current_value != 0 || true) {
+					System.out.println("<" + current_value + "> " + a);
 				}
 				a = evaluation_queue.poll();
 			}
@@ -924,60 +661,70 @@ public class Martha {
 		q.clear();
 	}
 
-	// Get the base utility value of an action or condition, as stated in the Cyc KB.
+	// Get the base utility value of an action or condition, as stated in the
+	// Cyc KB.
 	public Float getBaseUtility(String state) {
 		try {
 			// Return the value from a query.
-			
-			//Lots of work here to try to get a temporal utility value...
-			//But I want to get it working internall in CycL, rather than in Java.
-			ArrayList<String> utility_value = interpret("?(baseUtilityValue USER " + state + " ?VALUE)");
 
-			return(new Float(utility_value.get(utility_value.size()-1)));
+			// Lots of work here to try to get a temporal utility value...
+			// But I want to get it working internal in CycL, rather than in
+			// Java.
+			// interpretFromUser("?(exactAssertTime "+state+" ?TIME)");
+
+			ArrayList<String> utility_value = interpret("?(baseUtilityValue USER "
+					+ state + " ?VALUE)");
+			// System.out.println("[[[["+utility_value+"]]]]");
+			return (new Float(utility_value.get(utility_value.size() - 1)));
 		} catch (Exception e) {
 			// System.out.println("STATE VALUE ERROR: "+state);
 			// If the query makes no sense, or if there's an error, then default
 			// to zero.
+			// System.out.println("ERROR!!!!");
 			return 0f;
 		}
 	}
-	
-	// Get the utility yield of an action or condition, based on a sigmoid function.
+
+	// Get the utility yield of an action or condition, based on a sigmoid
+	// function.
 	public Float getUtilityYield(String state) {
 		try {
-			
-			//Get the scheduled time for an action
-			ArrayList<String> exactasserttime = interpret("?(exactAssertTime "+state+" ?VALUE)");
-			
-			//If the scheduled time exists...
-			if(!exactasserttime.isEmpty() && !exactasserttime.contains("ERROR"))
-			{
-				//Parse the scheduled time and get the current time
-				SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
-				Date event = sdf.parse(exactasserttime.get(exactasserttime.size()-1));
+
+			// Get the scheduled time for an action
+			ArrayList<String> exactasserttime = interpret("?(exactAssertTime "
+					+ state + " ?VALUE)");
+
+			// If the scheduled time exists...
+			if (!exactasserttime.isEmpty()
+					&& !exactasserttime.contains("ERROR")) {
+				// Parse the scheduled time and get the current time
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"EEE MMM dd HH:mm:ss z yyyy");
+				Date event = sdf.parse(exactasserttime.get(exactasserttime
+						.size() - 1));
 				Date now = new Date();
-				
+
 				Float yield = 1f;
-				
-				//Calculate the time until the event (can be negative)
-				long timeuntil = (event.getTime()-now.getTime())/1000;
-				
-				if(timeuntil > 0)
-				{
-					//Sigmoid function if event is in the future (yield increases as event approaches) 
-					yield =  (float) (2/(1+Math.pow(2.71828, (30 - timeuntil)/5))-1);
+
+				// Calculate the time until the event (can be negative)
+				long timeuntil = (event.getTime() - now.getTime()) / 1000;
+
+				if (timeuntil > 0) {
+					// Sigmoid function if event is in the future (yield
+					// increases as event approaches)
+					yield = (float) (1 / (1 + Math.pow(2.71828,
+							(timeuntil - 45) / 3)));
+				} else {
+					// Sigmoid function if event is in the past (yield increases
+					// as event recedes)
+					yield = (float) (1 / (1 + Math.pow(2.71828,
+							(timeuntil + 45) / 5)));
 				}
-				else
-				{
-					//Sigmoid function if event is in the past (yield increases as event recedes) 
-					 yield =  (float) (2/(1+Math.pow(2.71828, (timeuntil - 30)/5))-1);
-				}
-				
+
+				// System.out.println("<<<"+yield+">>>");
 				return yield;
-				
-			}
-			else
-			{
+
+			} else {
 				return 1f;
 			}
 		} catch (Exception e) {
@@ -987,13 +734,13 @@ public class Martha {
 			return 1f;
 		}
 	}
-	
-	// Get the total utility value of an action or condition, the product of baseUtiliityValue and utilityYield.
+
+	// Get the total utility value of an action or condition, the product of
+	// baseUtiliityValue and utilityYield.
 	public Float getUtility(String state) {
 		try {
-			
-			return(getBaseUtility(state)*getUtilityYield(state));
-			//return 0f;
+			return (getBaseUtility(state) * getUtilityYield(state));
+			// return 0f;
 		} catch (Exception e) {
 			// System.out.println("STATE VALUE ERROR: "+state);
 			// If the query makes no sense, or if there's an error, then default
@@ -1001,11 +748,15 @@ public class Martha {
 			return 0f;
 		}
 	}
-	
+
 	// Method to change the context of assertions. To be used in the future
 	// for changing timescale consciousness.
 	public void changeContext(String context) {
 		assrtctx = context;
+	}
+
+	public void changeDefaultContext(String context) {
+		defaultctx = context;
 	}
 
 	// Start MARTHA's consciousness
@@ -1016,9 +767,26 @@ public class Martha {
 		System.out.println("Starting new MARTHA Consciousness...");
 		mc.start();
 	}
-	
-	public void wake()
-	{
+
+	public void wake() {
 		mc.setState(4);
+	}
+
+	public String constructHypotheticalContext(String target_agent)
+			throws CreateException, KBTypeException {
+		System.out.print("Contructing hypothetical context... ");
+		String hypothetical_context = ContextImpl.findOrCreate(
+				"HYPOTHETICAL_" + target_agent + "_" + assrtctx).toString();
+		System.out.println(hypothetical_context);
+		changeContext(hypothetical_context);
+		interpret(">(genlMt " + hypothetical_context + " " + defaultctx + ")");
+		ArrayList<String> hypothetical_facts = interpret("?(knows "
+				+ target_agent + " ?FACTS)");
+		for (String f : hypothetical_facts) {
+			System.out.println(hypothetical_context + ": " + f);
+			interpret(">" + f);
+		}
+		changeContext(defaultctx);
+		return hypothetical_context;
 	}
 }

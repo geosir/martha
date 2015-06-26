@@ -8,7 +8,7 @@
  * NOTE: Comments added while working.
  * ===================================================*/
 
-package moe.george.martha_theoryofmind1;
+package moe.george.martha_theoryofmind2;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.cyc.base.CycConnectionException;
+import com.cyc.kb.client.ContextImpl;
 import com.cyc.kb.exception.KBApiException;
 import com.cyc.session.SessionCommunicationException;
 import com.cyc.session.SessionConfigurationException;
@@ -30,7 +31,7 @@ public class MainProcess {
 	// Declare constants used throughout the program
 	
 	 // The path at which the init folder containing MARTHA knowledge can be found.
-	public final static String init_folder = "init";
+	public final static String init_folder = "sandwiches";
 	public final static String history_file = "history.martha";
 	public static String context = "RealTimeMt"; // The context in which all assertions are made.
 	
@@ -84,6 +85,11 @@ public class MainProcess {
 				}
 			}
 		}
+		
+		//Create MARTHA subcontext
+		String subcontext = ContextImpl.findOrCreate("MARTHA_"+context).toString();
+		martha.interpret(">(genlMt "+subcontext+" "+context+")");
+		martha.changeContext(subcontext);
 
 		// Print friendly cool MARTHA banner
 		System.out.println("\n\n===============================================");

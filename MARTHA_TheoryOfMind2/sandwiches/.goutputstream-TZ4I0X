@@ -1,7 +1,3 @@
-### CYC INTERNALS ###
-
->(implies (and (different ?HIGH ?LOW) (termOfUnit ?NAT (IntegerFromToFn ?LOW ?HIGH))) (integerRange ?NAT (Unity ?LOW ?HIGH)))
-
 ### DEFINE CONSTANTS ###
 
 #MARTHA, the program
@@ -62,26 +58,19 @@
 =(argIsa baseUtilityValue 2 Thing)
 =(argIsa baseUtilityValue 3 Thing)
 
-#Store the SECOND-RESOLUTION assertion time of actions.
-*exactAssertTime
-=(arity exactAssertTime 2)
-=(argIsa exactAssertTime 1 Thing)
-=(argIsa exactAssertTime 2 Date)
-
-
 ### UTILITY VALUES ###
 
 #Set the utility values of KNOWS
 >(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (knows USER ?THING) 10))
->(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 10))
-#>(implies (and ?THING (unknownSentence (knows MARTHA (knows USER ?THING)))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 10))
-#>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
->(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 10))
->(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) 10))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
+>(implies (and ?THING (unknownSentence  (knows MARTHA (knows USER ?THING)))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 10))
+>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 5))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) -10))
 
 #Utility values of DESIRES
->(implies (and (desires USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER ?SOMETHING 20))
->(implies (and (desires USER ?SOMETHING) ?SOMETHING (unknownSentence (goalIsPersistent ?SOMETHING True))) (baseUtilityValue USER ?SOMETHING 5))
+>(implies (and (desires USER ?SOMETHING) (or (unknownSentence ?SOMETHING) (not ?SOMETHING))) (baseUtilityValue USER ?SOMETHING 20))
+>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (baseUtilityValue USER ?SOMETHING 5))
 
 ### OTHER RULES ###
 
@@ -91,6 +80,9 @@
 #The user knows that is said, and MARTHA knows it too.
 >(implies (say-TMF ?THING) (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))))
 
-#If both MARTHA and the user know something, it's because they talked. Thus, the user knows that martha knows something.
-#>(implies (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))) (knows USER (knows MARTHA (knows USER ?THING))))
+#If both MARTHA and the user know something, it's because they syncrhonized. Thus, the user knows that martha knows something.
+>(implies (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))) (knows USER (knows MARTHA (knows USER ?THING))))
+
+#Correcting false beliefs! Theory of Mind
+>(implies (and (beliefs USER ?SOMETHING) (unknownSentence ?SOMETHING)) (contradict-TMF ?SOMETHING))
 

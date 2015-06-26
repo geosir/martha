@@ -1,7 +1,3 @@
-### CYC INTERNALS ###
-
->(implies (and (different ?HIGH ?LOW) (termOfUnit ?NAT (IntegerFromToFn ?LOW ?HIGH))) (integerRange ?NAT (Unity ?LOW ?HIGH)))
-
 ### DEFINE CONSTANTS ###
 
 #MARTHA, the program
@@ -62,22 +58,15 @@
 =(argIsa baseUtilityValue 2 Thing)
 =(argIsa baseUtilityValue 3 Thing)
 
-#Store the SECOND-RESOLUTION assertion time of actions.
-*exactAssertTime
-=(arity exactAssertTime 2)
-=(argIsa exactAssertTime 1 Thing)
-=(argIsa exactAssertTime 2 Date)
-
-
 ### UTILITY VALUES ###
 
 #Set the utility values of KNOWS
 >(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (knows USER ?THING) 10))
->(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 10))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
 #>(implies (and ?THING (unknownSentence (knows MARTHA (knows USER ?THING)))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 10))
 #>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
->(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 10))
->(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) 10))
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 5))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) -10))
 
 #Utility values of DESIRES
 >(implies (and (desires USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER ?SOMETHING 20))

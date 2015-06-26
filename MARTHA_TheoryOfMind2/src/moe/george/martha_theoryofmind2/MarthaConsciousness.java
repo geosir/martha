@@ -6,13 +6,13 @@
  * in the MARTHA engine.
  *===========================================*/
 
-package moe.george.martha_theoryofmind1;
+package moe.george.martha_theoryofmind2;
 
 public class MarthaConsciousness implements Runnable {
 
 	// Instantiate some variables
 	private String name = "m_conscious";
-	private int state = 2;
+	//private int state = 2;
 	/* 0 = dream
 	 * 1 = contextual search
 	 * 2 = goal driven search
@@ -29,14 +29,14 @@ public class MarthaConsciousness implements Runnable {
 	@Override
 	public void run() {
 		int counter = 0; // To keep track of cycles
-		int idlecounter = 0; //To keep a running total of consecutive idle cycles.
-		int stuckcounter = 0; //To keep a running total of consecutive non-execution cycles.
+		//int idlecounter = 0; //To keep a running total of consecutive idle cycles.
+		//int stuckcounter = 0; //To keep a running total of consecutive non-execution cycles.
 		while (true) {
-			idlecounter++;
+			//idlecounter++;
 			counter++; // increment counter
 			//System.out.print(".");			
 			
-			//Check current situation and set state accordingly.
+			/*//Check current situation and set state accordingly.
 			//If there are goals that are immediate (non-persistent) goals, then plan directly for them.
 			if(!martha.interpret("?(and (desires USER ?DESIRES) (unknownSentence (goalIsPersistent (desires USER ?DESIRES) True)))").isEmpty())
 			{
@@ -88,12 +88,16 @@ public class MarthaConsciousness implements Runnable {
 			default:
 				System.out.println("DEFAULT");
 				martha.planGenerally();
-			}
+			}*/
+			
+			martha.planForGoals();
 			
 
 			// If we've accumulated 10 cycles worth of plans,
 			// Evaluate them and execute the results.
-			if (counter%10==0) {
+			if (counter%1==0) {
+				
+				martha.execute();
 				
 				//Show what MARTHA knows
 				System.out.println("USER knows:");
@@ -102,22 +106,34 @@ public class MarthaConsciousness implements Runnable {
 				martha.interpretFromUser("?(beliefs USER ?WHAT)");
 				System.out.println("MARTHA knows:");
 				martha.interpretFromUser("?(knows MARTHA ?WHAT)");
-				System.out.println("MARTHA surmises:");
-				martha.interpretFromUser("?(surmises MARTHA ?WHAT)");
+				//System.out.println("MARTHA surmises:");
+				//martha.interpretFromUser("?(surmises MARTHA ?WHAT)");
+
 				
-				
-				// System.out.println();
-				martha.evaluatePlans();
-				int results = martha.execute();
-				if(results==99)
+				//int results = martha.execute();
+				/*if(results==99)
 				{
 					stuckcounter++;
 				}
 				else
 				{
 					stuckcounter = 0;
+				}*/
+				
+				for(int i=0; i<5; i++)
+				{
+					System.out.print(".");
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
+				System.out.println();
 			}
+			
+			
 		}
 	}
 
@@ -133,7 +149,7 @@ public class MarthaConsciousness implements Runnable {
 	
 	public void setState(int s)
 	{
-		state = s;
+		//state = s;
 	}
 
 }
