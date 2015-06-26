@@ -78,7 +78,7 @@ public class Martha {
 	private int max_forwards_depth = 10; // Maximum forward steps in the plan
 	private int max_backwards_depth = -5; // Maximum backwards dependencies in
 											// the plan
-	private int legitimacy_threshold = 45; // Minimum score needed for a plan to
+	private int legitimacy_threshold = 30; // Minimum score needed for a plan to
 											// be even considered for execution.
 
 	private int max_martha_depth = 2; // Maxium recursive spawns of Martha
@@ -89,6 +89,8 @@ public class Martha {
 
 	// An object to store MARTHA's simulation of the user.
 	Martha user;
+	
+	protected int depth = 2;
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException,
@@ -161,12 +163,16 @@ public class Martha {
 	 * any Cyc file interpreter at the present, so this works well.
 	 **********************/
 	public ArrayList<String> interpret(String line) {
+		return interpret(line, assrtctx);
+	}
+	
+	public ArrayList<String> interpret(String line, String context) {
 
 		// ArrayList to store output, which only comes from the query (for now).
 		ArrayList<String> results = new ArrayList<String>();
 		// Boolean indicating whether the entry should be logged or ignored.
 		Boolean ignore = false;
-
+		
 		// Wrapped in try-catch in order to not die if there is bad input.
 		try {
 
@@ -178,18 +184,18 @@ public class Martha {
 				// > : assertion (variables allowed)
 				case ">":
 					String ops = line.substring(1);
-					AssertionImpl.findOrCreate(ops, assrtctx);
+					AssertionImpl.findOrCreate(ops, context);
 					break;
 				// = : fact (variables not allowed)
 				case "=":
 					ops = line.substring(1);
-					FactImpl.findOrCreate(ops, assrtctx);
+					FactImpl.findOrCreate(ops, context);
 					break;
 				// X : unassert assertion
 				case "X":
 					ops = line.substring(1);
 					Assertion deleteassert = AssertionImpl.findOrCreate(ops,
-							assrtctx);
+							context);
 					deleteassert.delete();
 					System.out.println("DELETED");
 					break;
@@ -209,7 +215,7 @@ public class Martha {
 
 					// Create query in the context InferencePSC (the broadest
 					// query context) with specified query parameters.
-					Query q = new Query(ops, assrtctx, queryparams);
+					Query q = new Query(ops, context, queryparams);
 
 					// Get variables used in this query.
 					Collection<Variable> queryVars = q.getQueryVariables();
@@ -243,7 +249,7 @@ public class Martha {
 					String question = line.substring(1);
 
 					// Formulate query
-					q = new Query(question, assrtctx, queryparams);
+					q = new Query(question, context, queryparams);
 
 					// Return truth of query
 					results.add(String.valueOf(q.isTrue()));
@@ -260,11 +266,17 @@ public class Martha {
 				case "@":
 					// "@@" for default context.
 					if (line.substring(1, 2).equals("@")) {
-						assrtctx = defaultctx;
+						changeContext(defaultctx);
 					} else {
-						assrtctx = line.substring(1);
+						if(line.contains("?"))
+						{
+							changeContext(line.substring(1).replace("?", defaultctx));
+						}
+						else
+						{
+							changeContext(line.substring(1));
+						}
 					}
-					ContextImpl.findOrCreate(assrtctx);
 					break;
 				// Give error and do nothing if there is a bad operator.
 				default:
@@ -283,7 +295,7 @@ public class Martha {
 		} catch (Exception e) { // Catch error and give debug info, but don't
 								// die.
 
-			e.printStackTrace();
+			//e.printStackTrace();
 			System.out
 					.println("Warning: Could not interpret \"" + line + "\".");
 			results.add("ERROR");
@@ -394,22 +406,16 @@ public class Martha {
 		return level;
 	}
 
-	public void planGenerally() {
-		try {
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, 0);
-			martha_p.planGenerally();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public void planForGoals() {
+		
+		System.out.println("DEPTH ============== "+depth);
 		try {
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, 0);
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
 			martha_p.planForGoals();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("DEPTH ============== "+depth);
 	}
 
 	// Method to see if a goal is persistent (should not be unasserted
@@ -576,7 +582,7 @@ public class Martha {
 	// Deepclone an LinkedHashSet, rather than just copy a reference.
 	// This returns an entirely new ArrayList that is disconnected
 	// from the given one.
-	private LinkedHashSet<String> deepClone(LinkedHashSet<String> original) {
+	protected LinkedHashSet<String> deepClone(LinkedHashSet<String> original) {
 
 		// For each element in the original, make an identical copy in the new
 		// independent LinkedHashSet.
@@ -752,11 +758,20 @@ public class Martha {
 	// Method to change the context of assertions. To be used in the future
 	// for changing timescale consciousness.
 	public void changeContext(String context) {
-		assrtctx = context;
+		try
+		{
+			ContextImpl.findOrCreate(context);
+			assrtctx = context;
+		} catch (Exception e)
+		{
+			System.out.println("ERROR: Could not change context to "+context+".");
+		}
+		
 	}
 
 	public void changeDefaultContext(String context) {
 		defaultctx = context;
+		System.out.println(depth+" "+defaultctx);
 	}
 
 	// Start MARTHA's consciousness
@@ -770,23 +785,5 @@ public class Martha {
 
 	public void wake() {
 		mc.setState(4);
-	}
-
-	public String constructHypotheticalContext(String target_agent)
-			throws CreateException, KBTypeException {
-		System.out.print("Contructing hypothetical context... ");
-		String hypothetical_context = ContextImpl.findOrCreate(
-				"HYPOTHETICAL_" + target_agent + "_" + assrtctx).toString();
-		System.out.println(hypothetical_context);
-		changeContext(hypothetical_context);
-		interpret(">(genlMt " + hypothetical_context + " " + defaultctx + ")");
-		ArrayList<String> hypothetical_facts = interpret("?(knows "
-				+ target_agent + " ?FACTS)");
-		for (String f : hypothetical_facts) {
-			System.out.println(hypothetical_context + ": " + f);
-			interpret(">" + f);
-		}
-		changeContext(defaultctx);
-		return hypothetical_context;
 	}
 }

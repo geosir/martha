@@ -9,6 +9,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.cyc.kb.Variable;
 import com.cyc.kb.client.ContextImpl;
@@ -21,7 +23,7 @@ import com.cyc.session.SessionCommunicationException;
 import com.cyc.session.SessionConfigurationException;
 import com.cyc.session.SessionInitializationException;
 
-public class MarthaProcess {
+public class MarthaProcess extends Martha{
 	private String assrtctx = "BaseKB"; // The context in which to make
 	// assertions to Cyc
 	private String defaultctx = assrtctx; // The default context (to revert to
@@ -39,24 +41,31 @@ public class MarthaProcess {
 	private int max_backwards_depth = -5; // Maximum backwards dependencies in
 											// the plan
 
-	private int current_martha_depth;
+	private int depth;
 
 	private Martha parent;
+	
+	private String agent;
 
+	private Queue<String> execution_queue = new LinkedList<String>();
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
 	private int legitimacy_threshold = 30; // Minimum score needed for a plan to
 
 	// be even considered for execution.
 
-	public MarthaProcess(Martha parent_martha, String context, int depth)
+	public MarthaProcess(Martha parent_martha, String context, String defaultcontext, int init_depth, String target_agent)
 			throws SessionConfigurationException,
 			SessionCommunicationException, SessionInitializationException,
 			CreateException, KBTypeException {
 
-		current_martha_depth = depth;
+		super(context);
+		
+		depth = init_depth;
 
 		parent = parent_martha;
+		
+		agent = target_agent;
 
 		// Let everyone know that a new MARTHA is being instantiated
 		System.out.println("Creating new MARTHA Process...");
@@ -77,7 +86,7 @@ public class MarthaProcess {
 		// call
 		// Create this context in the Cyc KB.
 		assrtctx = context;
-		defaultctx = assrtctx; // Store the default context;
+		defaultctx = defaultcontext; // Store the default context;
 		ContextImpl.findOrCreate(context);
 
 		// user = new Martha("userctx_"+context);
@@ -130,22 +139,6 @@ public class MarthaProcess {
 		}
 	}
 
-	public ArrayList<String> getKeyWords(String p) {
-		return parent.getKeyWords(p);
-	}
-
-	public ArrayList<String> interpret(String input) {
-		return parent.interpret(input);
-	}
-
-	// Queue action chains to be evaluated. Useful to compare a large
-	// set of possible actions.
-	public int queueEvaluation(LinkedHashSet<String> path) {
-		evaluation_queue.add(path);
-		// System.out.println("EVAL-QUEUED: " + path);
-		return 0;
-	}
-
 	// Do long and deep searches based on random facts within Cyc.
 	public void dream() {
 		forwardsSearch(generate("(?PRED ?THING ?FACT)"),
@@ -154,18 +147,41 @@ public class MarthaProcess {
 
 	public void planForGoals() {
 
+		try {
+			System.out.println("DEPTH ============== "+depth);
+			if(depth>0)
+			{
+				
+				
+				String next_agent = "MARTHA";
+				if(agent.equals("MARTHA"))
+				{
+					next_agent = "USER";
+				}
+				
+				String hypothetical = constructHypotheticalContext(next_agent);
+				
+				MarthaProcess martha_p = new MarthaProcess(this, hypothetical, defaultctx, depth-1, next_agent);
+				martha_p.planForGoals();
+				execute();
+			}
+			
+		} catch (Exception e)
+		{
+			
+		}
+		
+		System.out.println("DEPTH ============== "+depth);
 		// Query the database to find the user's desires.
-		ArrayList<String> goals = interpret("?(desires USER ?DESIRES)");
-
+		ArrayList<String> goals = interpret("?(desires "+agent+" ?DESIRES)", assrtctx);
 		// For each desire (which is a goal in this case), evaluate the possible
 		// paths to the goal.
 		for (String g : goals) {
 			ArrayList<LinkedHashSet<String>> paths = backwardsSearch(g,
 					new LinkedHashSet<String>(), 0);
 
-			if (!(paths.contains("ERROR") || paths.contains("IMPOSSIBLE"))) {
-				for (LinkedHashSet<String> p : paths) {
-					System.out.println("Queue: " + p);
+			for (LinkedHashSet<String> p : paths) {
+				if (!(paths.contains("ERROR|IMPOSSIBLE"))) {
 					queueEvaluation(p);
 				}
 			}
@@ -227,7 +243,7 @@ public class MarthaProcess {
 	public ArrayList<LinkedHashSet<String>> backwardsSearch(String goal,
 			LinkedHashSet<String> path, int depth) {
 
-		System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
+		//System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
 		// thus far.
@@ -262,7 +278,15 @@ public class MarthaProcess {
 					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
 							p, newpath, depth - 1);
 					if (results.get(0).contains("ROOT" + (depth - 1))) {
-						newpath.add("IMPOSSIBLE");
+						//newpath.add("IMPOSSIBLE");
+						
+						String newagent = "MARTHA";
+						if(agent.equals("MARTHA"))
+						{
+							newagent = "USER";
+						}
+						
+						newpath.add("(desires "+newagent+" "+p+")");
 						newpaths.add(newpath);
 						// System.out.println(">>>>>> IMPOSSIBLE - PRECONDITION CANNOT BE MET <<<<<<     "+p);
 						return newpaths;
@@ -387,7 +411,7 @@ public class MarthaProcess {
 	// specified postconditions.
 	public ArrayList<String> getActionsForPostconditions(String postconditions) {
 		ArrayList<String> actions = interpret("?(causes-PropProp ?ACTIONS "
-				+ postconditions + ")");
+				+ postconditions + ")", assrtctx);
 		return actions;
 	}
 
@@ -395,7 +419,7 @@ public class MarthaProcess {
 	// are required by the specified action.
 	public ArrayList<String> getPreconditionsForAction(String action) {
 		ArrayList<String> preconditions = interpret("?(preconditionFor-Props ?CONDITION "
-				+ action + ")");
+				+ action + ")", assrtctx);
 		return preconditions;
 	}
 
@@ -403,7 +427,7 @@ public class MarthaProcess {
 	// result from a specific situation (action).
 	public ArrayList<String> resultsInConditions(String action) {
 		ArrayList<String> postconditions = interpret("?(causes-PropProp "
-				+ action + " ?CONDITIONS)");
+				+ action + " ?CONDITIONS)", assrtctx);
 		return postconditions;
 	}
 
@@ -411,11 +435,97 @@ public class MarthaProcess {
 	// are enabled by a specific situation (condition).
 	public ArrayList<String> enablesActions(String precondition) {
 		ArrayList<String> preconditions = interpret("?(preconditionFor-Props "
-				+ precondition + " ?ACTIONS)");
+				+ precondition + " ?ACTIONS)", assrtctx);
 		return preconditions;
 	}
 
-	// Evaluate the desirability of proposed plans in the evaluation queue.
+	public int queueExecution(String action) {
+		execution_queue.add(action);
+		return 0;
+	}
+
+	public String constructHypotheticalContext(String target_agent)
+			throws CreateException, KBTypeException {
+		System.out.print("Contructing hypothetical context... ");
+		System.out.println(defaultctx);
+		SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyyHHmmss");
+		Date dt = new Date();
+		String timestamp = sdf.format(dt); // formats to 09/23/2009 13:53:28.238
+				
+		String hypothetical_context = ContextImpl.findOrCreate(
+				"HYPOTHETICAL_" + timestamp +"_" + target_agent + "_" + defaultctx).toString();
+		System.out.println(hypothetical_context);
+		interpret(">(genlMt " + hypothetical_context + " " + defaultctx + ")");
+		ArrayList<String> hypothetical_facts = interpret("?(knows "
+				+ target_agent + " ?FACTS)", assrtctx);
+		for (String f : hypothetical_facts) {
+			System.out.println(hypothetical_context + ": " + f);
+			interpret(">" + f, hypothetical_context);
+		}
+		return hypothetical_context;
+	}
+	
+	// Get the next action in the execution queue.
+		public String getEnqueuedAction() {
+			return (execution_queue.poll());
+		}
+	
+	public int execute() {
+
+		// Store the state of the operation. 0 is suceessful.
+		// 99 means nothing executed.
+		int state = 99;
+
+		// Get the first action from the execution queue.
+		String action = getEnqueuedAction();
+		
+		
+
+		// While there are still actions in the queue...execute them.
+		while (action != null) {
+			// Let the user know that action is being executed
+			// Silenced.
+			// System.out.println("Execute " + action);
+			
+			ArrayList<String> keywords = getKeyWords(action);
+
+			// Boolean to store whether or not the action is to be asserted.
+			boolean shouldassert = true;
+
+			// If there is a match...
+			if (!keywords.isEmpty()) {
+
+				// If the function expression is say-TMF...
+				// SYNTAX: (say-TMF <thing to be said>)
+				// Where TMF is short for "TheMARTHAFunction"
+				if (keywords.get(0).equals("desires")) {
+					shouldassert=false;
+					interpret(">" + action, assrtctx);
+					state=0;
+				} else {
+					// No match, don't assert.
+					shouldassert = false;
+				}
+			} else {
+				// no match, don't assert.
+				shouldassert = false;
+			}
+
+			if (shouldassert) {
+				// Assert that it has been done.
+				interpret(">" + action, assrtctx);
+				interpret(">(exactAssertTime " + action
+						+ " (IndexicalReferentFn Now-Indexical))", assrtctx);
+			}
+
+			// Get the next action
+			action = getEnqueuedAction();
+		}
+
+		// Return the state of the execution.
+		return state;
+	}
+	
 	public void evaluatePlans() {
 		try {
 
@@ -472,7 +582,7 @@ public class MarthaProcess {
 
 				// Queue all actions in the approved plan for execution.
 				for (String c : candidate) {
-					queueExecution(c);
+					parent.queueExecution(c);
 				}
 			} else {
 				// System.out.println("THRESHOLD UNMET: " + candidate + " " +
@@ -482,121 +592,14 @@ public class MarthaProcess {
 			e.printStackTrace();
 			System.out.println("Warning: Evaluation failed.");
 		}
+		
 	}
-
-	// Clear all the contents of a queue.
-	private void purgeQueue(Queue<?> q) {
-		q.clear();
-	}
-
-	public int queueExecution(String action) {
-		// System.out.println("EXEC-QUEUED1 : " + action);
-		return parent.queueExecution(action);
-	}
-
-	// Deepclone a LinkedHashSet, rather than just copy a reference.
-	// This returns an entirely new ArrayList that is disconnected
-	// from the given one.
-	private LinkedHashSet<String> deepClone(LinkedHashSet<String> original) {
-
-		// For each element in the original, make an identical copy in the new
-		// independent LinkedHashSet.
-		LinkedHashSet<String> a = new LinkedHashSet<String>(original.size());
-		for (String o : original) {
-			a.add(new String(o));
+	
+	// Queue action chains to be evaluated. Useful to compare a large
+		// set of possible actions.
+		public int queueEvaluation(LinkedHashSet<String> path) {
+			evaluation_queue.add(path);
+			// System.out.println("EVAL-QUEUED: " + path);
+			return 0;
 		}
-		return a;
-	}
-
-	// Get the utility yield of an action or condition, based on a sigmoid
-	// function.
-	public Float getUtilityYield(String state) {
-		try {
-
-			// Get the scheduled time for an action
-			ArrayList<String> exactasserttime = interpret("?(exactAssertTime "
-					+ state + " ?VALUE)");
-
-			// If the scheduled time exists...
-			if (!exactasserttime.isEmpty()
-					&& !exactasserttime.contains("ERROR")) {
-				// Parse the scheduled time and get the current time
-				SimpleDateFormat sdf = new SimpleDateFormat(
-						"EEE MMM dd HH:mm:ss z yyyy");
-				Date event = sdf.parse(exactasserttime.get(exactasserttime
-						.size() - 1));
-				Date now = new Date();
-
-				Float yield = 1f;
-
-				// Calculate the time until the event (can be negative)
-				long timeuntil = (event.getTime() - now.getTime()) / 1000;
-
-				if (timeuntil > 0) {
-					// Sigmoid function if event is in the future (yield
-					// increases as event approaches)
-					yield = (float) (1 / (1 + Math.pow(2.71828,
-							(timeuntil - 45) / 3)));
-				} else {
-					// Sigmoid function if event is in the past (yield increases
-					// as event recedes)
-					yield = (float) (1 / (1 + Math.pow(2.71828,
-							(timeuntil + 45) / 5)));
-				}
-
-				// System.out.println("<<<"+yield+">>>");
-				return yield;
-
-			} else {
-				return 1f;
-			}
-		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
-			// If the query makes no sense, or if there's an error, then default
-			// to one (full utility).
-			return 1f;
-		}
-	}
-
-	public Float getBaseUtility(String state) {
-		try {
-			// Return the value from a query.
-
-			// Lots of work here to try to get a temporal utility value...
-			// But I want to get it working internal in CycL, rather than in
-			// Java.
-			// interpretFromUser("?(exactAssertTime "+state+" ?TIME)");
-
-			ArrayList<String> utility_value = interpret("?(baseUtilityValue USER "
-					+ state + " ?VALUE)");
-			// System.out.println("[[[["+utility_value+"]]]]");
-			return (new Float(utility_value.get(utility_value.size() - 1)));
-		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
-			// If the query makes no sense, or if there's an error, then default
-			// to zero.
-			// System.out.println("ERROR!!!!");
-			return 0f;
-		}
-	}
-
-	// Get the total utility value of an action or condition, the product of
-	// baseUtiliityValue and utilityYield.
-	public Float getUtility(String state) {
-		try {
-			return (getBaseUtility(state) * getUtilityYield(state));
-			// return 0f;
-		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
-			// If the query makes no sense, or if there's an error, then default
-			// to zero.
-			return 0f;
-		}
-	}
-
-	// An abstraction for the use of interpret("|"+...), returns the true/false
-	// of a statement.
-	public Boolean getTruthOf(String statement) {
-		return (interpret("|" + statement).get(0).equals("true"));
-	}
 }

@@ -13,7 +13,7 @@
 =(isa USER Person)
 
 ### DEFINE MARTHA FUNCTIONS ###
-
+@MARTHA_?
 #TMF is short for TMF
 
 #Define say-TheMARTHAFunction: Output a statement to the user.
@@ -46,6 +46,8 @@
 #what the user knows.
 >(causes-PropProp (unknownSentence  (knows MARTHA (knows USER ?THING))) (query-TMF (knows USER ?THING)))
 >(causes-PropProp (query-TMF (knows USER ?THING)) (knows MARTHA (knows USER ?THING)))
+
+@@
 
 #Predicate indicating the persistence of goal.
 #Syntax: (goalIsPersistent <goal> <isPersistent? T/F>)

@@ -5,20 +5,22 @@
 =(isa FiveDollarSteakSandwich Sandwich)
 =(isa FiveDollarSteakSandwich Product)
 #The FiveDollarSteakSandwich costs $5.00
-=(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
 
 #Another specific sandwich.
 +JimmyJohnnyBLT
 =(isa JimmyJohnnyBLT Sandwich)
 =(isa JimmyJohnnyBLT Product)
 #The JimmyJohnnyBLT costs $3.25
-=(basicPrice JimmyJohnnyBLT (Dollar-UnitedStates 3.25))
+
 
 #Another specific sandwich.
 +ExquisiteJambonSandwich
 =(isa ExquisiteJambonSandwich Sandwich)
 =(isa ExquisiteJambonSandwich Product)
 #The ExquisiteJambonSandwich costs $6.00
+
+=(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
+=(basicPrice JimmyJohnnyBLT (Dollar-UnitedStates 3.25))
 =(basicPrice ExquisiteJambonSandwich (Dollar-UnitedStates 6.00))
 
 

@@ -60,6 +60,10 @@ public class MainProcess {
 		System.out.println("Initializing MARTHA...");
 		martha = new Martha(context); // Create a new instance of the MARTHA engine, specifying the assert context.
 
+		//Create MARTHA subcontext
+		String subcontext = ContextImpl.findOrCreate("MARTHA_"+context).toString();
+		martha.interpret(">(genlMt "+subcontext+" "+context+")");
+		
 		// Initialize the Cyc database from the contents of the init folder by
 		// feeding them line by line through the MARTHA interpreter.
 		Pattern p = Pattern.compile("\\.martha$");
@@ -85,12 +89,10 @@ public class MainProcess {
 				}
 			}
 		}
-		
-		//Create MARTHA subcontext
-		String subcontext = ContextImpl.findOrCreate("MARTHA_"+context).toString();
-		martha.interpret(">(genlMt "+subcontext+" "+context+")");
-		martha.changeContext(subcontext);
 
+		//Move MARTHA to subcontext.
+		martha.changeContext(subcontext);
+		
 		// Print friendly cool MARTHA banner
 		System.out.println("\n\n===============================================");
 		System.out.println("Welcome to MARTHA");
