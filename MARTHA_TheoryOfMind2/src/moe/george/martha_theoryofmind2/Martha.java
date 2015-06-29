@@ -78,11 +78,8 @@ public class Martha {
 	private int max_forwards_depth = 10; // Maximum forward steps in the plan
 	private int max_backwards_depth = -5; // Maximum backwards dependencies in
 											// the plan
-	private int legitimacy_threshold = 30; // Minimum score needed for a plan to
+	private int legitimacy_threshold = 20; // Minimum score needed for a plan to
 											// be even considered for execution.
-
-	private int max_martha_depth = 2; // Maxium recursive spawns of Martha
-										// engines.
 
 	// An object to run MARTHA's consciousness
 	MarthaConsciousness mc;

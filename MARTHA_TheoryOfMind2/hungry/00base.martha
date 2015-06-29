@@ -85,7 +85,7 @@
 >(implies (and (desires USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER ?SOMETHING 20))
 >(implies (and (desires USER ?SOMETHING) ?SOMETHING (unknownSentence (goalIsPersistent ?SOMETHING True))) (baseUtilityValue USER ?SOMETHING 5))
 
->(baseUtilityValue (query-TMF ?SOMETHING) 100)
+>(baseUtilityValue USER (query-TMF ?SOMETHING) 100)
 
 ### OTHER RULES ###
 

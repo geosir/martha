@@ -47,6 +47,8 @@
 >(causes-PropProp (buys USER ?PRODUCT) (possesses USER ?PRODUCT))
 
 #Another way is to make it yourself.
->(implies (isa ?ITEM HomemadeArtifact) (causes-PropProp (makes USER ?ITEM) (possesses USER ?ITEM))
+>(implies (isa ?ITEM HomemadeArtifact) (causes-PropProp (makes USER ?ITEM) (possesses USER ?ITEM)))
+
+>(implies (buys ?AGENT ?SOMETHING) (possesses ?AGENT ?SOMETHING))
 
 
