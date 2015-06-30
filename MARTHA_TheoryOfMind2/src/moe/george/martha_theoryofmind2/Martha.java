@@ -338,6 +338,11 @@ public class Martha {
 	 * }
 	 */
 
+	public static void incrementFocusTicker()
+	{
+		focus_ticker++;
+	}
+	
 	// The main function should use this method when collecting input from the
 	// user.
 	// It is a wrapper for the interpret() function which also asserts to the
@@ -353,6 +358,9 @@ public class Martha {
 			// the contents of the assertion.
 			if (input.substring(0, 1).equals(">")) {
 				interpret(">(knows USER " + input.substring(1) + ")");
+				interpret(">(says USER " + input.substring(1) + ")");
+				
+				interpret(">(focus "+(focus_ticker+1)+" (why (says USER "+input.substring(1)+")))");
 			}
 			// ^ : special MARTHA escape command
 			else if (input.substring(0, 1).equals("^")) {
@@ -739,18 +747,21 @@ public class Martha {
 			} else {
 				System.out.println("THRESHOLD UNMET: " + candidate + " " + highest_value);
 				int next_focus = focus_ticker;
-				for(String c : candidate)
+				if(candidate != null)
 				{
-					if(action_set.contains(getKeyWords(c).get(0)))
+					for(String c : candidate)
 					{
-						next_focus = focus_ticker + 1;
-						interpret(">(focus "+next_focus+" (why "+c+"))");
+						if(action_set.contains(getKeyWords(c).get(0)))
+						{
+							next_focus = focus_ticker + 1;
+							interpret(">(focus "+next_focus+" (why "+c+"))");
+						}
 					}
-				}
-				if(focus_ticker != next_focus)
-				{
-					focus_ticker = next_focus;
-					explore();
+					if(focus_ticker != next_focus)
+					{
+						focus_ticker = next_focus;
+						explore();
+					}
 				}
 			}
 		} catch (Exception e) {

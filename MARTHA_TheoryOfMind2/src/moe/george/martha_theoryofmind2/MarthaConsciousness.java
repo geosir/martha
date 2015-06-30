@@ -90,6 +90,7 @@ public class MarthaConsciousness implements Runnable {
 				martha.planGenerally();
 			}*/
 			
+			//martha.planForGoals();
 			martha.explore();
 			
 
@@ -133,7 +134,8 @@ public class MarthaConsciousness implements Runnable {
 				System.out.println();
 			}
 			
-			
+			//Shift focus to next cycle
+			Martha.incrementFocusTicker();
 		}
 	}
 

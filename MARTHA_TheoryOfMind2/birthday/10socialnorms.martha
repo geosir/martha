@@ -5,7 +5,3 @@
 >(beliefs USER (causes-PropProp (says MARTHA "Happy Birthday!") (feelsEmotion USER (HighAmountFn Happiness))))
 
 >(says USER (birthDate USER Today-Indexical))
-
-@MARTHA_?
->(focus 0 (why (says USER (birthDate USER Today-Indexical))))
-@@
