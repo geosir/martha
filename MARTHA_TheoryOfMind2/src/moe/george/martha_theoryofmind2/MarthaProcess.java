@@ -9,8 +9,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.cyc.kb.Variable;
 import com.cyc.kb.client.ContextImpl;
@@ -47,10 +45,12 @@ public class MarthaProcess extends Martha {
 
 	private String agent;
 
+	String mode = "backwards";
+	
 	private Queue<String> execution_queue = new LinkedList<String>();
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
-	private int legitimacy_threshold = 20; // Minimum score needed for a plan to
+	private int legitimacy_threshold = 0; // Minimum score needed for a plan to
 
 	// be even considered for execution.
 
@@ -145,11 +145,85 @@ public class MarthaProcess extends Martha {
 		forwardsSearch(generate("(?PRED ?THING ?FACT)"),
 				new LinkedHashSet<String>(), 0);
 	}
+	
+	public void explore()
+	{
+		mode = "forwards";
+		
+		for(String s : interpret("?(focus ?SOMETHING)"))
+		{
+			System.out.println(">>> "+s);
+			explore(s);
+		}
+	}
+	
+	public void explore(String inquiry) {
+		mode = "forwards";
+
+		try 
+		{
+			System.out.println(agent+" ===EXPLORE=== " + depth);
+			
+			String next_agent = "MARTHA";
+			if (agent.equals("MARTHA")) {
+				next_agent = "USER";
+			}
+			
+			forwardsSearch(inquiry, new LinkedHashSet<String>(), 0);
+			evaluatePlans();
+			
+			if (depth > 0) {
+				execute();
+				String hypothetical = constructHypotheticalContext(next_agent);
+				MarthaProcess martha_p = new MarthaProcess(this, hypothetical,
+						defaultctx, depth - 1, next_agent);
+				
+				martha_p.explore();
+			}
+			else
+			{
+				String action = execution_queue.poll();
+				action = getEnqueuedAction();
+				while(action != null)
+				{
+					ArrayList<String> keywords = getKeyWords(action);
+
+					// Boolean to store whether or not the action is to be asserted.
+					boolean shouldexplore = false;
+
+					// If there is a match...
+					if (!keywords.isEmpty()) {
+
+						// If the function expression is say-TMF...
+						// SYNTAX: (say-TMF <thing to be said>)
+						// Where TMF is short for "TheMARTHAFunction"
+						if (keywords.get(0).equals("knows")) {
+							shouldexplore = true;
+						} 
+						else if (keywords.get(0).equals("says")) {
+							shouldexplore = true;
+						}
+					}
+					if (shouldexplore) {
+						MainProcess.martha.explore("(why "+action+")");
+					}
+
+					// Get the next action
+					action = getEnqueuedAction();
+				}
+			}
+
+		}
+		catch (Exception e) {
+
+		}
+	}
 
 	public void planForGoals() {
-
+		mode = "backwards";
 		try {
-			System.out.println("DEPTH ============== " + depth);
+			System.out.println(agent+" ============== " + depth);
+			
 			if (depth > 0) {
 
 				String next_agent = "MARTHA";
@@ -169,7 +243,7 @@ public class MarthaProcess extends Martha {
 
 		}
 
-		System.out.println("DEPTH ============== " + depth);
+		System.out.println(agent+" ============== " + depth);
 		// Query the database to find the user's desires.
 		ArrayList<String> goals = interpret(
 				"?(desires " + agent + " ?DESIRES)", assrtctx);
@@ -240,9 +314,9 @@ public class MarthaProcess extends Martha {
 	// VERY IMPORTANT: This is the recursive backwards search algorithm. It
 	// recursively looks for dependenceies for actions and goals.
 	public ArrayList<LinkedHashSet<String>> backwardsSearch(String goal,
-			LinkedHashSet<String> path, int depth) {
+			LinkedHashSet<String> path, int search_depth) {
 
-		// System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
+		 System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
 		// thus far.
@@ -261,7 +335,7 @@ public class MarthaProcess extends Martha {
 		ArrayList<String> preconditions = getPreconditionsForAction(goal);
 
 		// If we aren't exceeding the max dependency depth...
-		if (depth >= max_backwards_depth) {
+		if (search_depth >= max_backwards_depth) {
 
 			// Find and add preconditions of this state.
 			for (String p : preconditions) {
@@ -275,8 +349,9 @@ public class MarthaProcess extends Martha {
 					// Do a backwards search to find actions to fulfill
 					// those preconditions.
 					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
-							p, newpath, depth - 1);
-					if (results.get(0).contains("ROOT" + (depth - 1))) {
+							p, newpath, search_depth - 1);
+					
+					if (results.get(0).contains("ROOT" + (search_depth - 1))) {
 						// newpath.add("IMPOSSIBLE");
 
 						String newagent = "MARTHA";
@@ -310,20 +385,21 @@ public class MarthaProcess extends Martha {
 				for (String a : actions) {
 
 					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
-							a, newpath, depth - 1);
+							a, newpath, search_depth - 1);
 					newpaths.addAll(results);
 				}
 			} else {
 				ArrayList<LinkedHashSet<String>> results = backwardsSearch(
-						trueaction, newpath, depth - 1);
+						trueaction, newpath, search_depth - 1);
 				newpaths.addAll(results);
 			}
 
 			// If there are no more actions and no more preconditions,
 			// We've reached a root.
 			if (actions.isEmpty() && preconditions.isEmpty()) {
-				newpath.add("ROOT" + depth);
+				newpath.add("ROOT" + search_depth);
 				newpaths.add(newpath);
+				
 				// Just curious what a new forward search would do here.
 				// Need to put this somewhere useful
 				// it would be nice to spawn forward searches from found roots,
@@ -350,8 +426,61 @@ public class MarthaProcess extends Martha {
 	// Forwards search algorithm. Given a goal, this looks for what actions can
 	// stem from it into the future.
 	public void forwardsSearch(String goal, LinkedHashSet<String> path,
-			int depth) {
-		// System.out.println(">>> FORWARDS    : " + goal + " " + depth);
+			int search_depth) {
+		System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
+
+		// An ArrayList to store the current cumulative chain of actions found
+		// thus far.
+		// This is deepcloned from the given path in order to start a new branch
+		// in the recursion tree.
+		LinkedHashSet<String> newpath = deepClone(path);
+		// Add the current goal to the chain.
+		newpath.add(goal);
+
+		// If we haven't exceeded the max forward search length...
+		if (depth <= max_forwards_depth) {
+			// Get the conditions fulfilled by the current situation.
+			ArrayList<String> conditions = resultsInConditions(goal);
+
+			// Find the actions enabled by the current situation
+			ArrayList<String> actions = enablesActions(goal);
+
+			// Abort if path is impossible.
+			if (newpath.contains("IMPOSSIBLE")) {
+				return;
+			}
+
+			// For each action, do a backwards search for dependencies.
+			for (String a : actions) {
+				// For each possible action chain, find dependencies, then find
+				// where it can lead.
+				forwardsSearch(a, newpath, search_depth + 1);
+			}
+
+			// For each condition, do a forwards search, e.g. for actions that
+			// they enable.
+			for (String c : conditions) {
+				forwardsSearch(c, newpath, search_depth + 1);
+			}
+
+			// If there are no more actions to take,
+			// We've reached the end. Queue the path for evaluation.
+			if (actions.isEmpty()) {
+				queueEvaluation(newpath);
+			}
+		}
+
+		// If we've reached the end, and the chain isn't impossible, queue it
+		// for evaluation.
+		else {
+			if (!newpath.contains("IMPOSSIBLE"))
+				queueEvaluation(newpath);
+		}
+	}
+	
+	public void mixedSearch(String goal, LinkedHashSet<String> path,
+			int search_depth) {
+		System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
 		// thus far.
@@ -379,15 +508,15 @@ public class MarthaProcess extends Martha {
 				// For each possible action chain, find dependencies, then find
 				// where it can lead.
 				for (LinkedHashSet<String> possible : backwardsSearch(a,
-						newpath, depth + 1)) {
-					forwardsSearch(a, possible, depth + 1);
+						newpath, search_depth + 1)) {
+					forwardsSearch(a, possible, search_depth + 1);
 				}
 			}
 
 			// For each condition, do a forwards search, e.g. for actions that
 			// they enable.
 			for (String c : conditions) {
-				forwardsSearch(c, newpath, depth + 1);
+				forwardsSearch(c, newpath, search_depth + 1);
 			}
 
 			// If there are no more actions to take,
@@ -439,6 +568,7 @@ public class MarthaProcess extends Martha {
 	}
 
 	public int queueExecution(String action) {
+		System.out.println("EXEC-QUEUED: "+action);
 		execution_queue.add(action);
 		return 0;
 	}
@@ -456,8 +586,9 @@ public class MarthaProcess extends Martha {
 						+ assrtctx).toString();
 		System.out.println(hypothetical_context);
 		interpret(">(genlMt " + hypothetical_context + " " + defaultctx + ")");
-		ArrayList<String> hypothetical_facts = interpret("?(knows "
+		ArrayList<String> hypothetical_facts = interpret("?(beliefs "
 				+ target_agent + " ?FACTS)", assrtctx);
+		System.out.println("TT: "+target_agent);
 		for (String f : hypothetical_facts) {
 			System.out.println(hypothetical_context + ": " + f);
 			interpret(">" + f, hypothetical_context);
@@ -500,7 +631,38 @@ public class MarthaProcess extends Martha {
 					shouldassert = false;
 					interpret(">" + action, assrtctx);
 					state = 0;
-				} else {
+				} 
+				else if (keywords.get(0).equals("beliefs")) {
+					if(action.contains("(beliefs USER"))
+					{
+						action = action.replace("(beliefs USER ", "(beliefs USER (focus ");
+						action = action + ")";
+					}
+					else if(action.contains("(beliefs MARTHA"))
+					{
+						action = action.replace("(beliefs MARTHA ", "(beliefs MARTHA (focus ");
+						action = action + ")";
+						shouldassert = false;
+						System.out.println("Exec debug: "+action);
+						interpret(">" + action, assrtctx);
+						state = 0;
+					}
+					
+					
+				}
+				else if (keywords.get(0).equals("why")) {
+					String next_agent = "MARTHA";
+					if (agent.equals("MARTHA")) {
+						next_agent = "USER";
+					}
+					action = action.replace("(why ", "(beliefs "+next_agent+" (focus ");
+					action = action + ")";
+					shouldassert = false;
+					System.out.println("Exec debug: "+action);
+					interpret(">" + action, assrtctx);
+					state = 0;
+				}
+				else {
 					// No match, don't assert.
 					shouldassert = false;
 				}
@@ -580,7 +742,16 @@ public class MarthaProcess extends Martha {
 
 				// Queue all actions in the approved plan for execution.
 				for (String c : candidate) {
-					parent.queueExecution(c);
+					if(mode.equals("backwards"))
+					{
+						parent.queueExecution(c);
+					}
+					else
+					{
+						System.out.println("Q+EXEC: "+c);
+						queueExecution(c);
+					}
+					
 				}
 			} else {
 				// System.out.println("THRESHOLD UNMET: " + candidate + " " +
@@ -597,7 +768,7 @@ public class MarthaProcess extends Martha {
 	// set of possible actions.
 	public int queueEvaluation(LinkedHashSet<String> path) {
 		evaluation_queue.add(path);
-		// System.out.println("EVAL-QUEUED: " + path);
+		System.out.println("EVAL-QUEUED: " + path);
 		return 0;
 	}
 }

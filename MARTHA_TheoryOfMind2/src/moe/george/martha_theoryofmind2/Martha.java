@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,8 +74,8 @@ public class Martha {
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
 	// Constants used in the recursive planning search.
-	private int max_forwards_depth = 10; // Maximum forward steps in the plan
-	private int max_backwards_depth = -5; // Maximum backwards dependencies in
+	//private int max_forwards_depth = 10; // Maximum forward steps in the plan
+	//private int max_backwards_depth = -5; // Maximum backwards dependencies in
 											// the plan
 	private int legitimacy_threshold = 20; // Minimum score needed for a plan to
 											// be even considered for execution.
@@ -87,7 +86,7 @@ public class Martha {
 	// An object to store MARTHA's simulation of the user.
 	Martha user;
 	
-	protected int depth = 2;
+	protected int depth = 3;
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException,
@@ -402,17 +401,41 @@ public class Martha {
 		// Return that quantity.
 		return level;
 	}
+	
+	public void explore() {
+		
+		System.out.println("MARTHA ===EXPLORE=== "+depth);
+		try {
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
+			martha_p.explore();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("MARTHA ===EXPLORE=== "+depth);
+	}
+	
+	public void explore(String s) {
+		
+		System.out.println("MARTHA ===EXPLORE=== "+depth);
+		try {
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
+			martha_p.explore(s);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("MARTHA ===EXPLORE=== "+depth);
+	}
 
 	public void planForGoals() {
 		
-		System.out.println("DEPTH ============== "+depth);
+		System.out.println("MARTHA ============== "+depth);
 		try {
 			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
 			martha_p.planForGoals();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("DEPTH ============== "+depth);
+		System.out.println("MARTHA ============== "+depth);
 	}
 
 	// Method to see if a goal is persistent (should not be unasserted

@@ -31,7 +31,7 @@ public class MainProcess {
 	// Declare constants used throughout the program
 	
 	 // The path at which the init folder containing MARTHA knowledge can be found.
-	public final static String init_folder = "hungry";
+	public final static String init_folder = "birthday";
 	public final static String history_file = "history.martha";
 	public static String context = "RealTimeMt"; // The context in which all assertions are made.
 	

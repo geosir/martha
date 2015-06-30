@@ -90,7 +90,7 @@ public class MarthaConsciousness implements Runnable {
 				martha.planGenerally();
 			}*/
 			
-			martha.planForGoals();
+			martha.explore();
 			
 
 			// If we've accumulated 10 cycles worth of plans,
