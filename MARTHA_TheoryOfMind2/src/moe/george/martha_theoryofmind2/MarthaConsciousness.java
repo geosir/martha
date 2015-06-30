@@ -90,7 +90,7 @@ public class MarthaConsciousness implements Runnable {
 				martha.planGenerally();
 			}*/
 			
-			//martha.planForGoals();
+			martha.planForGoals();
 			martha.explore();
 			
 
