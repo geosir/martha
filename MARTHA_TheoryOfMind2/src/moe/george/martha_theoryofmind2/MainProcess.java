@@ -93,6 +93,9 @@ public class MainProcess {
 		//Move MARTHA to subcontext.
 		martha.changeContext(subcontext);
 		
+		//Get MARTHA actions
+		martha.updateActionSet();
+		
 		// Print friendly cool MARTHA banner
 		System.out.println("\n\n===============================================");
 		System.out.println("Welcome to MARTHA");

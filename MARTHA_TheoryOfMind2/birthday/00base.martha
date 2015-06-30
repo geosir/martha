@@ -12,6 +12,10 @@
 +USER
 =(isa USER Person)
 
+#The collection of all actions defined in Martha's main execute function.
+&MarthaAction
+=(isa MarthaAction Collection)
+
 ### DEFINE MARTHA FUNCTIONS ###
 
 #TMF is short for TMF
@@ -72,14 +76,24 @@
 =(arity says 2)
 =(argIsa says 1 IntelligentAgent)
 =(argIsa says 2 Thing)
+=(isa says MarthaAction)
+>(preconditionFor-Props (says USER ?SOMETHING) (beliefs MARTHA ?SOMETHING))
+>(preconditionFor-Props (says MARTHA ?SOMETHING) (beliefs USER ?SOMEITHING))
+>(implies (says USER ?SOMETHING) (beliefs MARTHA ?SOMETHING))
+>(implies (says MARTHA ?SOMETHING) (beliefs USER ?SOMEITHING))
 
 *focus
-=(arity focus 1)
+=(arity focus 2)
 =(argIsa focus 1 Thing)
+=(argIsa focus 2 Thing)
 
 *why
 =(arity why 1)
 =(argIsa why 1 Thing)
+
+*carryover
+=(arity carryover 1)
+=(argIsa carryover 1 Thing)
 
 
 ### UTILITY VALUES ###

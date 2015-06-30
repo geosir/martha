@@ -2,13 +2,10 @@
 
 >(beliefs USER (beliefs MARTHA (causes-PropProp (birthDate USER Today-Indexical) (says MARTHA "Happy Birthday!"))))
 
->(preconditionFor-Props (says USER ?SOMETHING) (beliefs MARTHA ?SOMETHING))
->(preconditionFor-Props (says MARTHA ?SOMETHING) (beliefs USER ?SOMEITHING))
-
 >(beliefs USER (causes-PropProp (says MARTHA "Happy Birthday!") (feelsEmotion USER (HighAmountFn Happiness))))
 
 >(says USER (birthDate USER Today-Indexical))
 
 @MARTHA_?
->(focus (why (says USER (birthDate USER Today-Indexical))))
+>(focus 0 (why (says USER (birthDate USER Today-Indexical))))
 @@

@@ -33,6 +33,7 @@ import com.cyc.kb.Variable;
 import com.cyc.kb.client.AssertionImpl;
 import com.cyc.kb.client.ContextImpl;
 import com.cyc.kb.client.FactImpl;
+import com.cyc.kb.client.KBCollectionImpl;
 import com.cyc.kb.client.KBIndividualImpl;
 import com.cyc.kb.client.KBPredicateImpl;
 import com.cyc.kb.exception.CreateException;
@@ -87,6 +88,9 @@ public class Martha {
 	Martha user;
 	
 	protected int depth = 3;
+	
+	protected static int focus_ticker = 0;
+	protected static ArrayList<String> action_set;
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException,
@@ -152,6 +156,12 @@ public class Martha {
 		initFromFile(initpath);
 	}
 
+	//Update MARTHA's awareness of MARTHA Actions
+	public void updateActionSet()
+	{
+		action_set = interpret("?(isa ?SOMETHING MarthaAction)");
+	}
+	
 	/*********************
 	 * THIS IS COOL! A Cyc interpreter I wrote so that *input from file* could
 	 * be used, for purposes such as knowledge initialization. It interprets the
@@ -195,10 +205,15 @@ public class Martha {
 					deleteassert.delete();
 					System.out.println("DELETED");
 					break;
-				// + : create new constant
+				// + : create new constant (individual)
 				case "+":
 					ops = line.substring(1);
 					KBIndividualImpl.findOrCreate(ops);
+					break;
+				// & : create new constant (collection)
+				case "&":
+					ops = line.substring(1);
+					KBCollectionImpl.findOrCreate(ops);
 					break;
 				// * : create new predicate
 				case "*":
@@ -408,22 +423,32 @@ public class Martha {
 		try {
 			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
 			martha_p.explore();
+			//return martha_p.explore();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		System.out.println("MARTHA ===EXPLORE=== "+depth);
+		//return new ArrayList<ArrayList<String>>();
+		
+		evaluatePlans();
+		//execute();
+		
 	}
 	
 	public void explore(String s) {
 		
 		System.out.println("MARTHA ===EXPLORE=== "+depth);
+		//ArrayList<String> chain = new ArrayList<String>();
 		try {
 			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
 			martha_p.explore(s);
+			//chain.addAll(martha_p.explore(s));
+			//chain.add(s);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		System.out.println("MARTHA ===EXPLORE=== "+depth);
+		//return chain;
 	}
 
 	public void planForGoals() {
@@ -521,23 +546,29 @@ public class Martha {
 			// action and
 			// 2) its parameters. Matcher applies this regular expression to the
 			// action.
-			Pattern p = Pattern
+			/*Pattern p = Pattern
 					.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
-			Matcher m = p.matcher(action);
+			Matcher m = p.matcher(action);*/
 
-			// System.out.println("ACTION("+getUtility(action)+"): "+action);
+			 System.out.println("ACTION("+getUtility(action)+"): "+action);
 
 			// Boolean to store whether or not the action is to be asserted.
 			boolean shouldassert = true;
+			
+			ArrayList<String> keywords = getKeyWords(action);
 
 			// If there is a match...
-			if (m.matches()) {
+			if (!keywords.isEmpty()) {
 
 				// If the function expression is say-TMF...
 				// SYNTAX: (say-TMF <thing to be said>)
 				// Where TMF is short for "TheMARTHAFunction"
-				if (m.group(1).equals("say-TMF")) {
-
+				if (keywords.get(0).equals("say-TMF")) {
+					
+					Pattern p = Pattern
+							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
+					Matcher m = p.matcher(action);
+					
 					// Say what needs to be said.
 					System.out.println();
 					System.out.println("=================================");
@@ -548,10 +579,39 @@ public class Martha {
 					state = 0;
 
 				}
+				if (keywords.get(0).equals("says")) {
+
+					Pattern p = Pattern
+							.compile("\\(says MARTHA ([\\(\\)\\w\\s]+)\\)");
+					Matcher m = p.matcher(action);
+						
+					if(!m.matches())
+					{
+						p = Pattern
+								.compile("\\(says MARTHA \\\"([\\(\\)\\w\\s.,!?;:]+)\\\"\\)");
+						m = p.matcher(action);
+					}
+					
+					if(m.matches())
+					{
+						// Say what needs to be said.
+						System.out.println();
+						System.out.println("=================================");
+						System.out.println("MARTHA>>> " + m.group(1));
+						System.out.println("=================================");
+						System.out.println();
+	
+						state = 0;
+					}
+				}
 				// If the function expression is query-TMF...
 				// SYNTAX: (query-TMF <thing to be asked>)
-				else if (m.group(1).equals("query-TMF")) {
+				else if (keywords.get(0).equals("query-TMF")) {
 
+					Pattern p = Pattern
+							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
+					Matcher m = p.matcher(action);
+					
 					// Ask the user what needs to be asked.
 					System.out.println();
 					System.out.println("=================================");
@@ -564,8 +624,12 @@ public class Martha {
 													// user respond to the
 													// question.
 					state = 1; // Pending user input state.
-				} else if (m.group(1).equals("contradict-TMF")) {
+				} else if (keywords.get(0).equals("contradict-TMF")) {
 
+					Pattern p = Pattern
+							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
+					Matcher m = p.matcher(action);
+					
 					// Ask the user what needs to be asked.
 					System.out.println();
 					System.out.println("=================================");
@@ -673,8 +737,21 @@ public class Martha {
 					queueExecution(c);
 				}
 			} else {
-				// System.out.println("THRESHOLD UNMET: " + candidate + " " +
-				// highest_value);
+				System.out.println("THRESHOLD UNMET: " + candidate + " " + highest_value);
+				int next_focus = focus_ticker;
+				for(String c : candidate)
+				{
+					if(action_set.contains(getKeyWords(c).get(0)))
+					{
+						next_focus = focus_ticker + 1;
+						interpret(">(focus "+next_focus+" (why "+c+"))");
+					}
+				}
+				if(focus_ticker != next_focus)
+				{
+					focus_ticker = next_focus;
+					explore();
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

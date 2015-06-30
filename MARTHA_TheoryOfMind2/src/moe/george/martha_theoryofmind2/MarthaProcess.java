@@ -45,7 +45,7 @@ public class MarthaProcess extends Martha {
 
 	private String agent;
 
-	String mode = "backwards";
+	private String mode = "backwards";
 	
 	private Queue<String> execution_queue = new LinkedList<String>();
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
@@ -150,10 +150,28 @@ public class MarthaProcess extends Martha {
 	{
 		mode = "forwards";
 		
-		for(String s : interpret("?(focus ?SOMETHING)"))
+		//ArrayList<ArrayList<String>> chains = new ArrayList<ArrayList<String>>();
+		
+		System.out.println("FOCUS TICKER: "+focus_ticker);
+		interpretFromUser("?(focus ?WHAT ?SOMETHING)");
+		for(String s : interpret("?(focus "+focus_ticker+" ?SOMETHING)"))
 		{
 			System.out.println(">>> "+s);
 			explore(s);
+		}
+		
+		if (depth > 0) {
+			String next_agent = "MARTHA";
+			if (agent.equals("MARTHA")) {
+				next_agent = "USER";
+			}
+			execute();
+			try{
+				String hypothetical = constructHypotheticalContext(next_agent);
+				MarthaProcess martha_p = new MarthaProcess(this, hypothetical,
+						defaultctx, depth - 1, next_agent);
+				martha_p.explore();
+			}catch(Exception e){System.out.println("ERROR WHILE SPAWNING NEW EXPLORER.");}
 		}
 	}
 	
@@ -164,30 +182,28 @@ public class MarthaProcess extends Martha {
 		{
 			System.out.println(agent+" ===EXPLORE=== " + depth);
 			
-			String next_agent = "MARTHA";
-			if (agent.equals("MARTHA")) {
-				next_agent = "USER";
-			}
-			
 			forwardsSearch(inquiry, new LinkedHashSet<String>(), 0);
 			evaluatePlans();
 			
-			if (depth > 0) {
-				execute();
-				String hypothetical = constructHypotheticalContext(next_agent);
-				MarthaProcess martha_p = new MarthaProcess(this, hypothetical,
-						defaultctx, depth - 1, next_agent);
+			
+			//else
+			//{
+				/*String a = execution_queue.poll();
+				while(a!=null)
+				{
+					MainProcess.martha.queueExecution(a);
+					
+				}*/
 				
-				martha_p.explore();
-			}
-			else
-			{
+				//TODO: MOVE TO MAIN MARTHA ENGINE
+				/*
 				String action = execution_queue.poll();
 				action = getEnqueuedAction();
 				while(action != null)
 				{
 					ArrayList<String> keywords = getKeyWords(action);
 
+					
 					// Boolean to store whether or not the action is to be asserted.
 					boolean shouldexplore = false;
 
@@ -210,8 +226,8 @@ public class MarthaProcess extends Martha {
 
 					// Get the next action
 					action = getEnqueuedAction();
-				}
-			}
+				}*/
+			//}
 
 		}
 		catch (Exception e) {
@@ -588,6 +604,7 @@ public class MarthaProcess extends Martha {
 		interpret(">(genlMt " + hypothetical_context + " " + defaultctx + ")");
 		ArrayList<String> hypothetical_facts = interpret("?(beliefs "
 				+ target_agent + " ?FACTS)", assrtctx);
+		hypothetical_facts.addAll(interpret("?(carryover ?CARRYOVER)"));
 		System.out.println("TT: "+target_agent);
 		for (String f : hypothetical_facts) {
 			System.out.println(hypothetical_context + ": " + f);
@@ -606,6 +623,7 @@ public class MarthaProcess extends Martha {
 		// Store the state of the operation. 0 is suceessful.
 		// 99 means nothing executed.
 		int state = 99;
+		int new_focus = focus_ticker;
 
 		// Get the first action from the execution queue.
 		String action = getEnqueuedAction();
@@ -633,29 +651,25 @@ public class MarthaProcess extends Martha {
 					state = 0;
 				} 
 				else if (keywords.get(0).equals("beliefs")) {
+					new_focus = focus_ticker + 1;
 					if(action.contains("(beliefs USER"))
 					{
-						action = action.replace("(beliefs USER ", "(beliefs USER (focus ");
+						action = action.replace("(beliefs USER ", "(beliefs USER (focus "+new_focus+" ");
 						action = action + ")";
 					}
 					else if(action.contains("(beliefs MARTHA"))
 					{
-						action = action.replace("(beliefs MARTHA ", "(beliefs MARTHA (focus ");
+						action = action.replace("(beliefs MARTHA ", "(beliefs MARTHA (focus "+new_focus+" ");
 						action = action + ")";
 						shouldassert = false;
-						System.out.println("Exec debug: "+action);
-						interpret(">" + action, assrtctx);
-						state = 0;
 					}
-					
-					
+					System.out.println("Exec debug: "+action);
+					interpret(">" + action, assrtctx);
+					state = 0;					
 				}
 				else if (keywords.get(0).equals("why")) {
-					String next_agent = "MARTHA";
-					if (agent.equals("MARTHA")) {
-						next_agent = "USER";
-					}
-					action = action.replace("(why ", "(beliefs "+next_agent+" (focus ");
+					new_focus = focus_ticker + 1;
+					action = action.replace("(why ", "(carryover (focus "+new_focus+" ");
 					action = action + ")";
 					shouldassert = false;
 					System.out.println("Exec debug: "+action);
@@ -677,6 +691,7 @@ public class MarthaProcess extends Martha {
 				interpret(">(exactAssertTime " + action
 						+ " (IndexicalReferentFn Now-Indexical))", assrtctx);
 			}
+			focus_ticker = new_focus;
 
 			// Get the next action
 			action = getEnqueuedAction();
@@ -768,6 +783,10 @@ public class MarthaProcess extends Martha {
 	// set of possible actions.
 	public int queueEvaluation(LinkedHashSet<String> path) {
 		evaluation_queue.add(path);
+		if(mode=="forwards")
+		{
+			MainProcess.martha.queueEvaluation(path);
+		}
 		System.out.println("EVAL-QUEUED: " + path);
 		return 0;
 	}
