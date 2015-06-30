@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -405,9 +404,11 @@ public class Martha {
 	
 	//Do long and deep searches based on random facts within Cyc.
 	public void dream() {
+		//Do a forward search with some completely random fact.
 		forwardsSearch(generate("(?PRED ?THING ?FACT)"), new LinkedHashSet<String>(), 0);
 	}
 	
+	//Given a goal, find a path of action that gets to the goal.
 	public void planForGoals() {
 		
 		//Query the database to find the user's desires.
@@ -423,6 +424,8 @@ public class Martha {
 		}
 	}
 
+	//Generate starting points for forward searches based on a seed (or topic).
+	//For example, giving it ChicagoBotanicGardens might return (isa ChicagoBotanicGardnes Garden)
 	public String generate(String seed) {
 		// List to store facts.
 		ArrayList<String> facts = new ArrayList<String>();
@@ -459,6 +462,7 @@ public class Martha {
 			queryResults.close();
 			q.close();
 		} catch (Exception e) {
+			//Silent errors.
 		}
 
 		// Return random seed fact.
@@ -1017,6 +1021,7 @@ public class Martha {
 		mc.start();
 	}
 	
+	//A way for the Main Process to "wake" Martha Consciousness from a dream state.
 	public void wake()
 	{
 		mc.setState(4);

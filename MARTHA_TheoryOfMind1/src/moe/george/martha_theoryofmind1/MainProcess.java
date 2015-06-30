@@ -46,6 +46,9 @@ public class MainProcess {
 			SessionCommunicationException, SessionInitializationException,
 			CycConnectionException, KBApiException {
 
+		//Generate a new context name based on the exact time, down to the second.
+		//The purpose of this is so that I don't have to keep restarting Cyc whenever
+		//I make database changes, which is very slow.
 		if(new_context_each_time)
 		{
 			SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyyHHmmss");
@@ -92,6 +95,7 @@ public class MainProcess {
 		System.out.println("Copyright (c) George Moe 2015");
 		System.out.println("===============================================\n\n");
 
+		//Start Martha Consciousness through the Martha Engine.
 		martha.start();
 
 		// Prompt loop; this is what presents and handles the "MARTHA: " prompt.

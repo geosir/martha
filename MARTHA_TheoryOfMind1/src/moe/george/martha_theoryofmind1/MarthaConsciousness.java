@@ -12,12 +12,28 @@ public class MarthaConsciousness implements Runnable {
 
 	// Instantiate some variables
 	private String name = "m_conscious";
-	private int state = 2;
-	/* 0 = dream
-	 * 1 = contextual search
-	 * 2 = goal driven search
+
+	/*
+	 * With this version of MARTHA, it is possible for MARTHA to enter different
+	 * states of consciousness. State 0, or dreaming, is intended to be MARTHA's
+	 * idle state in which it can freely think up LONG chains of actions, with
+	 * possible utility in the future. State 1 is like dreaming, but with
+	 * shorter chains with seeds based in what was recently queried or said.
+	 * State 2 is a goal driven search that is just a complete backwards-chain,
+	 * intended to be used to find actions that can be used to fulfill a goal.
+	 * 
+	 * Martha can change freely between these states, depending on recent idle
+	 * cycles. There are mechanisms here to control this.
 	 */
+	private int state = 2;
+	/*
+	 * 0 = dream 1 = contextual search 2 = goal driven search
+	 */
+
+	// Martha Conscioussness's reference to the main MARTHA Engine.
 	private Martha martha;
+
+	// The Martha Consciousness thread.
 	private Thread t;
 
 	// Get the Martha instance from the MainProcess.
@@ -29,50 +45,61 @@ public class MarthaConsciousness implements Runnable {
 	@Override
 	public void run() {
 		int counter = 0; // To keep track of cycles
-		int idlecounter = 0; //To keep a running total of consecutive idle cycles.
-		int stuckcounter = 0; //To keep a running total of consecutive non-execution cycles.
+		int idlecounter = 0; // To keep a running total of consecutive idle
+								// cycles.
+		int stuckcounter = 0; // To keep a running total of consecutive
+								// non-execution cycles.
 		while (true) {
-			idlecounter++;
+			idlecounter++; // increment counter
 			counter++; // increment counter
-			//System.out.print(".");			
-			
-			//Check current situation and set state accordingly.
-			//If there are goals that are immediate (non-persistent) goals, then plan directly for them.
-			if(!martha.interpret("?(and (desires USER ?DESIRES) (unknownSentence (goalIsPersistent (desires USER ?DESIRES) True)))").isEmpty())
-			{
-				idlecounter = 0;
-				state = 2;
+
+			// Check current situation and set state accordingly.
+			// If there are goals that are immediate (non-persistent) goals,
+			// then plan directly for them.
+			if (!martha
+					.interpret(
+							"?(and (desires USER ?DESIRES) (unknownSentence (goalIsPersistent (desires USER ?DESIRES) True)))")
+					.isEmpty()) {
+				idlecounter = 0; // Clear idle count
+				state = 2; // Set the next state to be a goal-driven search.
 			}
-			else
-			{
-				idlecounter++;
-				
-				//If MARTHA has been idle for more than 10 cycles, then dream
-				if(idlecounter > 10)
-				{
-					state = 0;
+
+			// Otherwise, MARTHA has no set goals, so it's idle.
+			else {
+				idlecounter++; // increment counter.
+
+				// If MARTHA has been idle for more than 10 cycles, then dream
+				if (idlecounter > 10) {
+					state = 0; // Set the next state to be a dream state.
 				}
-				//Otherwise just do contextual search
-				else
-				{
-					state = 1;
+				// Otherwise just do contextual search
+				else {
+					state = 1; // Set the next state to be a contextual search
+								// state.
 				}
 			}
-			
-			//A state of 4 means to wake up,
-			//whether the MainProcess just got user input or internal
-			//processes say to wake up.
-			//Whether it is planning or it's dreaming, kick it out the loop.
-			if(state == 4 || stuckcounter > 3)
-			{
-				state = 1;
+
+			/*
+			 * A state of 4 means to wake up,whether the MainProcess just got
+			 * user input or internal processes say to wake up. Whether it is
+			 * planning or it's dreaming,kick it out the loop.
+			 * 
+			 * A state of 4 is usually set by the Martha wake() function.Also,
+			 * if Martha has been stuck a lot, kick it out of the loop and let it
+			 * try something new.
+			 */
+			if (state == 4 || stuckcounter > 3) {
+				state = 1; /*
+							 * Set the next state to be a contextual search
+							 * state This is a convenient middle ground.
+							 */
 			}
-			
-			
-			
-			// Plan for goals
-			switch(state)
-			{
+
+			/*
+			 * Depending on the value of "state", activate different search
+			 * methods in MARTHA.
+			 */
+			switch (state) {
 			case 0:
 				System.out.println("DREAM");
 				martha.dream();
@@ -89,13 +116,12 @@ public class MarthaConsciousness implements Runnable {
 				System.out.println("DEFAULT");
 				martha.planGenerally();
 			}
-			
 
 			// If we've accumulated 10 cycles worth of plans,
 			// Evaluate them and execute the results.
-			if (counter%10==0) {
-				
-				//Show what MARTHA knows
+			if (counter % 10 == 0) {
+
+				// DEBUG: Dump of USER/MARTHA knowledge.
 				System.out.println("USER knows:");
 				martha.interpretFromUser("?(knows USER ?WHAT)");
 				System.out.println("USER believes:");
@@ -104,17 +130,21 @@ public class MarthaConsciousness implements Runnable {
 				martha.interpretFromUser("?(knows MARTHA ?WHAT)");
 				System.out.println("MARTHA surmises:");
 				martha.interpretFromUser("?(surmises MARTHA ?WHAT)");
-				
-				
-				// System.out.println();
+
+				// Evaluate plans generated by the search portion.
 				martha.evaluatePlans();
+
+				// Execute the queued plans, storing the resulting exit code.
 				int results = martha.execute();
-				if(results==99)
-				{
+
+				// If results is 99, then nothing was executed. Increment the
+				// stuck counter.
+				if (results == 99) {
 					stuckcounter++;
 				}
-				else
-				{
+
+				// Otherwise, something was done, so reset the stuck counter.
+				else {
 					stuckcounter = 0;
 				}
 			}
@@ -130,9 +160,8 @@ public class MarthaConsciousness implements Runnable {
 			t.start();
 		}
 	}
-	
-	public void setState(int s)
-	{
+
+	public void setState(int s) {
 		state = s;
 	}
 
