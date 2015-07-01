@@ -1,0 +1,52 @@
+### DEFINE CONSTANTS ###
+
+#A *specific* $5 steak sandwich. Delicious!
++FiveDollarSteakSandwich
+=(isa FiveDollarSteakSandwich Sandwich)
+=(isa FiveDollarSteakSandwich Product)
+#The FiveDollarSteakSandwich costs $5.00
+
+#Another specific sandwich.
++JimmyJohnnyBLT
+=(isa JimmyJohnnyBLT Sandwich)
+=(isa JimmyJohnnyBLT Product)
+#The JimmyJohnnyBLT costs $3.25
+
+
+#Another specific sandwich.
++ExquisiteJambonSandwich
+=(isa ExquisiteJambonSandwich Sandwich)
+=(isa ExquisiteJambonSandwich Product)
+#The ExquisiteJambonSandwich costs $6.00
+
+=(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
+=(basicPrice JimmyJohnnyBLT (Dollar-UnitedStates 3.25))
+=(basicPrice ExquisiteJambonSandwich (Dollar-UnitedStates 6.00))
+
++PeanutButterAndJelly
+=(isa PeanutButterAndJelly Sandwich)
+=(isa PeanutButterAndJelly HomemadeArtifact)
+
+### DEFINE FUNCTIONS ###
+*makes
+=(arity makes 2)
+=(argIsa makes 1 IntelligentAgent)
+=(argIsa makes 2 HomemadeArtifact)
+
+### UTILITY VALUES ###
+>(baseUtilityValue USER (buys USER ??PRODUCT) 0)
+>(baseUtilityValue USER (makes USER ??ITEM) 0)
+
+
+### OTHER RULES ###
+
+#A precondition for buying a product is knowing its price.
+>(implies (basicPrice ?PRODUCT ?VALUE) (preconditionFor-Props (knows ?AGENT (basicPrice ?PRODUCT ?VALUE)) (buys ?AGENT ?PRODUCT)))
+
+#One way to possess an item is to buy it.
+>(causes-PropProp (buys USER ?PRODUCT) (possesses USER ?PRODUCT))
+
+#Another way is to make it yourself.
+>(implies (isa ?ITEM HomemadeArtifact) (causes-PropProp (makes USER ?ITEM) (possesses USER ?ITEM))
+
+
