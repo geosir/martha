@@ -21,11 +21,19 @@ import com.cyc.session.SessionCommunicationException;
 import com.cyc.session.SessionConfigurationException;
 import com.cyc.session.SessionInitializationException;
 
+/* This is a very improper use of extends, but I'd like MarthaProcesses and the Martha Engine
+ * to work interchangeable when called as a parent by a MarthaProcess.
+ * This is achieved by extending Martha, but overloading most of the functions.
+ */
 public class MarthaProcess extends Martha {
-	private String assrtctx = "BaseKB"; // The context in which to make
-	// assertions to Cyc
-	private String defaultctx = assrtctx; // The default context (to revert to
-											// after the context changes)
+
+	// ============== DEFINE VARIABLES ============= //
+
+	// The context in which to make assertions to Cyc
+	private String assrtctx = "BaseKB";
+
+	// The default context (to revert to after the context changes)
+	private String defaultctx = assrtctx;
 
 	// Parameters for the query interface.
 	// MAX-TRANDFORMATION-DEPTH 10 specifies
@@ -35,37 +43,55 @@ public class MarthaProcess extends Martha {
 	private String queryparams = ":MAX-TRANSFORMATION-DEPTH 1000";
 
 	// Constants used in the recursive planning search.
-	private int max_forwards_depth = 10; // Maximum forward steps in the plan
-	private int max_backwards_depth = -5; // Maximum backwards dependencies in
-											// the plan
+	// Maximum forward steps in the plan
+	private int max_forwards_depth = 10;
+	// Maximum backwards dependencies in the plan
+	private int max_backwards_depth = -5;
 
+	// The current depth of this Martha Process in the nested simulation.
 	private int depth;
 
+	// The process/engine that spawned this Martha process.
 	private Martha parent;
 
+	// The name of the agent who is the subject of this Martha process.
 	private String agent;
 
+	// The current search mode of this Martha process
+	/*
+	 * TODO: This is very awkward, and a potential for conflicts (e.g.,
+	 * simultaneous backwards/forwards search). Should integrate into functions
+	 * in the future.
+	 */
 	private String mode = "backwards";
-	
+
+	/*
+	 * Queues to place actions that are TO BE executed, and plans to be
+	 * evaluated. Allows for potential asynchronous planning development.
+	 */
 	private Queue<String> execution_queue = new LinkedList<String>();
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
-	private int legitimacy_threshold = 0; // Minimum score needed for a plan to
+	// Minimum score needed for a plan to be even considered for execution.
+	private int legitimacy_threshold = 0;
 
-	// be even considered for execution.
-
+	// The main constructor.
 	public MarthaProcess(Martha parent_martha, String context,
 			String defaultcontext, int init_depth, String target_agent)
 			throws SessionConfigurationException,
 			SessionCommunicationException, SessionInitializationException,
 			CreateException, KBTypeException {
 
+		// Superclass constructor (Martha Engine)
 		super(context);
 
+		// Set the depth from the constructor parameter
 		depth = init_depth;
 
+		// Set the parent from the constructor parameter
 		parent = parent_martha;
 
+		// Set the subject agent from the constructor parameter
 		agent = target_agent;
 
 		// Let everyone know that a new MARTHA is being instantiated
@@ -83,192 +109,227 @@ public class MarthaProcess extends Martha {
 		System.out.println(CycSessionManager.getCurrentSession().getOptions()
 				.getCyclistName());
 
-		// Set the assertion context to the one specified by the constructor
-		// call
-		// Create this context in the Cyc KB.
+		/*
+		 * Set the assertion context to the one specified by the constructor
+		 * call Create this context in the Cyc KB.
+		 */
 		assrtctx = context;
 		defaultctx = defaultcontext; // Store the default context;
 		ContextImpl.findOrCreate(context);
-
-		// user = new Martha("userctx_"+context);
 	}
 
-	public void planGenerally() {
-
-		// Possible actions that MARTHA can do to start a line of planning
-		String[] possible_actions = { "(say-TMF ?SOMETHING)",
-				"(query-TMF ?SOMETHING)", "(contradict-TMF ?SOMETHING)" };
-
-		// Possible facts that can fed into the actions to generate a valid
-		// inital action
-		// Unused.
-		// ArrayList<String> feed = new ArrayList<String>();
-
-		// Get feed from the last few entries in the logbook.
-		/*
-		 * for (int i = 1; i <= 20 && i < logbook.size(); i++) {
-		 * feed.addAll(Arrays.asList((logbook.get(logbook.size() -
-		 * i)[0].split("\\s|\\(|\\)")))); }
-		 */
-
-		// Clean up feed, removing all query variables, ERROR, and IMPOSSIBLE
-		// messages.
-		/*
-		 * Iterator<String> it = feed.iterator(); while(it.hasNext()) {
-		 * if(it.next().equals("IMPOSSIBLE|ERROR|\\?\\w+")) { it.remove(); } }
-		 */
-
-		// For each possible action, perform a forwards search with the
-		// action-fact pair generated above.
-
-		/*
-		 * for(String f : feed) { for (String p : possible_actions) {
-		 * //System.out.println(f); String seed = "(?PRED " + f + " ?FACT)";
-		 * //System.out.println(generate(seed)); forwardsSearch( "(" +
-		 * getKeyWords(p).get(0) + " " + generate() + ")", new
-		 * LinkedHashSet<String>(), 0); }
-		 * 
-		 * }
-		 */
-
-		for (String p : possible_actions) {
-			// System.out.println(f);
-			// System.out.println(generate(seed));
-			forwardsSearch(
-					"(" + getKeyWords(p).get(0) + " " + generate() + ")",
-					new LinkedHashSet<String>(), 0);
-		}
-	}
+	/*
+	 * Plan Generally is intended to use recent context to create plans to
+	 * fulfill long term goals. It is not implemented in this scenario. Most of
+	 * what is below pertains to random seeding of facts, and will probably
+	 * change with the success of the explore function.
+	 */
+	/*
+	 * public void planGenerally() {
+	 * 
+	 * // Possible actions that MARTHA can do to start a line of planning
+	 * String[] possible_actions = { "(say-TMF ?SOMETHING)",
+	 * "(query-TMF ?SOMETHING)", "(contradict-TMF ?SOMETHING)" };
+	 * 
+	 * // Possible facts that can fed into the actions to generate a valid //
+	 * inital action // Unused. // ArrayList<String> feed = new
+	 * ArrayList<String>();
+	 * 
+	 * // Get feed from the last few entries in the logbook.
+	 * 
+	 * for (int i = 1; i <= 20 && i < logbook.size(); i++) {
+	 * feed.addAll(Arrays.asList((logbook.get(logbook.size() -
+	 * i)[0].split("\\s|\\(|\\)")))); }
+	 * 
+	 * 
+	 * // Clean up feed, removing all query variables, ERROR, and IMPOSSIBLE //
+	 * messages.
+	 * 
+	 * Iterator<String> it = feed.iterator(); while(it.hasNext()) {
+	 * if(it.next().equals("IMPOSSIBLE|ERROR|\\?\\w+")) { it.remove(); } }
+	 * 
+	 * 
+	 * // For each possible action, perform a forwards search with the //
+	 * action-fact pair generated above.
+	 * 
+	 * 
+	 * for(String f : feed) { for (String p : possible_actions) {
+	 * //System.out.println(f); String seed = "(?PRED " + f + " ?FACT)";
+	 * //System.out.println(generate(seed)); forwardsSearch( "(" +
+	 * getKeyWords(p).get(0) + " " + generate() + ")", new
+	 * LinkedHashSet<String>(), 0); }
+	 * 
+	 * }
+	 * 
+	 * 
+	 * for (String p : possible_actions) { // System.out.println(f); //
+	 * System.out.println(generate(seed)); forwardsSearch( "(" +
+	 * getKeyWords(p).get(0) + " " + generate() + ")", new
+	 * LinkedHashSet<String>(), 0); } }
+	 */
 
 	// Do long and deep searches based on random facts within Cyc.
-	public void dream() {
-		forwardsSearch(generate("(?PRED ?THING ?FACT)"),
-				new LinkedHashSet<String>(), 0);
-	}
-	
-	public void explore()
-	{
+	/*
+	 * public void dream() { forwardsSearch(generate("(?PRED ?THING ?FACT)"),
+	 * new LinkedHashSet<String>(), 0); }
+	 */
+
+	/*
+	 * This is the biggest feature of this particular version of the MARTHA
+	 * engine. It is capable of using (focus ?X) statements and exploring
+	 * possible the user's intentions and goals with those statements. For
+	 * instance, in particular to the MARTHA test scenario, when the user said
+	 * "Today is my birthday," MARTHA could find that the user expects MARTHA to
+	 * say "Happy birthday!" because it would make him happy; thus MARTHA would
+	 * say "Happy birthday!"
+	 */
+
+	/*
+	 * Explore with no args; Create and explore seed statements using focus
+	 * statements in Martha's focus window.
+	 */
+	public void explore() {
+
+		// Set the mode for this process to a forwards search.
 		mode = "forwards";
-		
-		//ArrayList<ArrayList<String>> chains = new ArrayList<ArrayList<String>>();
-		
-		System.out.println("FOCUS TICKER: "+focus_ticker);
+
+		// Some nice debug output.
+		System.out.println("FOCUS TICKER: " + focus_ticker);
 		interpretFromUser("?(focus ?WHAT ?SOMETHING)");
-		for(String s : interpret("?(focus "+focus_ticker+" ?SOMETHING)"))
-		{
-			System.out.println(">>> "+s);
+
+		// Get the focus statements for this particular tick
+		for (String s : interpret("?(focus " + focus_ticker + " ?SOMETHING)")) {
+			// Some nice debig output.
+			System.out.println(">>> " + s);
+
+			// Explore the given focus statement.
 			explore(s);
 		}
-		
+
+		// If this isn't the bottom layer...
 		if (depth > 0) {
+
+			// Determine the subject agent of the next layer down beforehand.
 			String next_agent = "MARTHA";
 			if (agent.equals("MARTHA")) {
 				next_agent = "USER";
 			}
+
+			/*
+			 * Execute everything that's queued from the explore session above.
+			 * In forwards mode, this results in assertions that will be carried
+			 * over to the next simulation by the hypothetical context
+			 * constructor.
+			 */
 			execute();
-			try{
+
+			// Try-catch to silent fatal errors.
+			try {
+				// Create a HYPOTHETICAL context to store Martha simulation of
+				// mental processes.
 				String hypothetical = constructHypotheticalContext(next_agent);
+
+				/*
+				 * Create a Martha Process in this HYPOTHETICAL context. It's
+				 * sandboxed for things done here will not contaminate the
+				 * higher knowledge base.
+				 */
 				MarthaProcess martha_p = new MarthaProcess(this, hypothetical,
 						defaultctx, depth - 1, next_agent);
+
+				// Recursively explore possbilities in the next layer down.
 				martha_p.explore();
-			}catch(Exception e){System.out.println("ERROR WHILE SPAWNING NEW EXPLORER.");}
+			} catch (Exception e) {
+				// Catch errors and silence them.
+				// DEBUG:
+				// System.out.println("ERROR WHILE SPAWNING NEW EXPLORER.");
+			}
 		}
 	}
-	
+
+	// Explore possible intentions, with string as a seed.
 	public void explore(String inquiry) {
+
+		// Set the search mode to forwards.
 		mode = "forwards";
 
-		try 
-		{
-			System.out.println(agent+" ===EXPLORE=== " + depth);
-			
+		try {
+			// A nice debug flag.
+			System.out.println(agent + " ===EXPLORE=== " + depth);
+
+			// The forwads search itself! This is what does the simulation at
+			// each level.
 			forwardsSearch(inquiry, new LinkedHashSet<String>(), 0);
+
+			// Evaluate the plans produced by the forwards search.
 			evaluatePlans();
-			
-			
-			//else
-			//{
-				/*String a = execution_queue.poll();
-				while(a!=null)
-				{
-					MainProcess.martha.queueExecution(a);
-					
-				}*/
-				
-				//TODO: MOVE TO MAIN MARTHA ENGINE
-				/*
-				String action = execution_queue.poll();
-				action = getEnqueuedAction();
-				while(action != null)
-				{
-					ArrayList<String> keywords = getKeyWords(action);
 
-					
-					// Boolean to store whether or not the action is to be asserted.
-					boolean shouldexplore = false;
-
-					// If there is a match...
-					if (!keywords.isEmpty()) {
-
-						// If the function expression is say-TMF...
-						// SYNTAX: (say-TMF <thing to be said>)
-						// Where TMF is short for "TheMARTHAFunction"
-						if (keywords.get(0).equals("knows")) {
-							shouldexplore = true;
-						} 
-						else if (keywords.get(0).equals("says")) {
-							shouldexplore = true;
-						}
-					}
-					if (shouldexplore) {
-						MainProcess.martha.explore("(why "+action+")");
-					}
-
-					// Get the next action
-					action = getEnqueuedAction();
-				}*/
-			//}
-
-		}
-		catch (Exception e) {
-
+		} catch (Exception e) {
+			// Silence errors.
 		}
 	}
 
+	// Plan direct paths to explicitly given goals.
 	public void planForGoals() {
+		// Set the mode to a backwards search.
 		mode = "backwards";
+
 		try {
-			System.out.println(agent+" ============== " + depth);
-			
+			// A nice debug marker
+			System.out.println(agent + " ============== " + depth);
+
+			// If this isn't the bottom layer...
 			if (depth > 0) {
 
+				// Determine the subject agent of the next layer before hand.
 				String next_agent = "MARTHA";
 				if (agent.equals("MARTHA")) {
 					next_agent = "USER";
 				}
 
+				// Construct a HYPOTHETICAL context to run the simulations of
+				// the next layers.
 				String hypothetical = constructHypotheticalContext(next_agent);
 
+				// Create a MarthaProcess in this hypothetical context to run
+				// the simulations.
 				MarthaProcess martha_p = new MarthaProcess(this, hypothetical,
 						defaultctx, depth - 1, next_agent);
+
+				/*
+				 * Recursively run goal planning simulations. Placing this here
+				 * causes the nested searches to wait until the last search
+				 * returns results before acting upon those results.
+				 */
 				martha_p.planForGoals();
+
+				// Execute the queued results from the planning.
 				execute();
 			}
 
 		} catch (Exception e) {
-
+			// Silence errors.
 		}
 
-		System.out.println(agent+" ============== " + depth);
+		// A nice marker for debug.
+		System.out.println(agent + " ============== " + depth);
+
+		//
 		// Query the database to find the user's desires.
 		ArrayList<String> goals = interpret(
 				"?(desires " + agent + " ?DESIRES)", assrtctx);
+
+		// THE ACTUAL SEARCHING ITSELF!
 		// For each desire (which is a goal in this case), evaluate the possible
 		// paths to the goal.
 		for (String g : goals) {
+
+			// An ArrayList to store paths to the goals found by the backwards
+			// search.
 			ArrayList<LinkedHashSet<String>> paths = backwardsSearch(g,
 					new LinkedHashSet<String>(), 0);
 
+			// Unless the path is bad, queue each found path for evaluation.
 			for (LinkedHashSet<String> p : paths) {
 				if (!(paths.contains("ERROR|IMPOSSIBLE"))) {
 					queueEvaluation(p);
@@ -276,6 +337,8 @@ public class MarthaProcess extends Martha {
 			}
 		}
 
+		// Evaluate the plans. In backwards mode, these get queued for execution
+		// in the parent.
 		evaluatePlans();
 	}
 
@@ -332,7 +395,7 @@ public class MarthaProcess extends Martha {
 	public ArrayList<LinkedHashSet<String>> backwardsSearch(String goal,
 			LinkedHashSet<String> path, int search_depth) {
 
-		 System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
+		System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
 		// thus far.
@@ -341,6 +404,7 @@ public class MarthaProcess extends Martha {
 		ArrayList<LinkedHashSet<String>> newpaths = new ArrayList<LinkedHashSet<String>>();
 		LinkedHashSet<String> newpath = deepClone(path);
 
+		// Add the current goal to the plan.
 		newpath.add(goal);
 
 		// Add the current goal to the path.
@@ -366,20 +430,24 @@ public class MarthaProcess extends Martha {
 					// those preconditions.
 					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
 							p, newpath, search_depth - 1);
-					
-					if (results.get(0).contains("ROOT" + (search_depth - 1))) {
-						// newpath.add("IMPOSSIBLE");
 
+					// If we've reached a root on a precondition, we've reach an
+					// unfulfillable precondition.
+					if (results.get(0).contains("ROOT" + (search_depth - 1))) {
+
+						// Tag this agent with "desires" to say it needs to be
+						// fulfilled in the next layer up.
 						String newagent = "MARTHA";
 						if (agent.equals("MARTHA")) {
 							newagent = "USER";
 						}
-
 						newpath.add("(desires " + newagent + " " + p + ")");
 						newpaths.add(newpath);
-						// System.out.println(">>>>>> IMPOSSIBLE - PRECONDITION CANNOT BE MET <<<<<<     "+p);
+
 						return newpaths;
 					} else {
+						// In all other cases, just add all preconditions to the
+						// plan.
 						newpaths.addAll(results);
 					}
 				}
@@ -397,7 +465,9 @@ public class MarthaProcess extends Martha {
 				}
 			}
 
+			// So, if no actions have already happened,
 			if (trueaction.isEmpty()) {
+				// Start a new search with each of the actions.
 				for (String a : actions) {
 
 					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
@@ -405,6 +475,7 @@ public class MarthaProcess extends Martha {
 					newpaths.addAll(results);
 				}
 			} else {
+				// Otherwise, just search using the action that DID happen.
 				ArrayList<LinkedHashSet<String>> results = backwardsSearch(
 						trueaction, newpath, search_depth - 1);
 				newpaths.addAll(results);
@@ -415,7 +486,7 @@ public class MarthaProcess extends Martha {
 			if (actions.isEmpty() && preconditions.isEmpty()) {
 				newpath.add("ROOT" + search_depth);
 				newpaths.add(newpath);
-				
+
 				// Just curious what a new forward search would do here.
 				// Need to put this somewhere useful
 				// it would be nice to spawn forward searches from found roots,
@@ -434,7 +505,6 @@ public class MarthaProcess extends Martha {
 		}
 
 		// Return results.
-
 		System.out.println(newpaths);
 		return newpaths;
 	}
@@ -493,7 +563,7 @@ public class MarthaProcess extends Martha {
 				queueEvaluation(newpath);
 		}
 	}
-	
+
 	public void mixedSearch(String goal, LinkedHashSet<String> path,
 			int search_depth) {
 		System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
@@ -583,29 +653,60 @@ public class MarthaProcess extends Martha {
 		return preconditions;
 	}
 
+	// Add an action to the execution queue.
 	public int queueExecution(String action) {
-		System.out.println("EXEC-QUEUED: "+action);
+		System.out.println("EXEC-QUEUED: " + action);
 		execution_queue.add(action);
 		return 0;
 	}
 
+	/*
+	 * Take facts in the current context and create a HYPOTHETICAL simulation
+	 * context. It's hypothetical because it is a SUBCONTEXT of the default
+	 * context, but changes to it cannot affect the main Martha context or any
+	 * other sibling contexts. Facts in the context are derived from inherited
+	 * facts from the default context, and facts that are passed on through
+	 * (beliefs <subject agent> ...) or (carryover ...)
+	 */
 	public String constructHypotheticalContext(String target_agent)
 			throws CreateException, KBTypeException {
+
+		// Let everyone know we're making a new context.
 		System.out.print("Contructing hypothetical context... ");
+		// Debug output
 		System.out.println(defaultctx);
+
+		// Get the date; the context is named based on the time and date.
 		SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyyHHmmss");
 		Date dt = new Date();
-		String timestamp = sdf.format(dt); // formats to 09/23/2009 13:53:28.238
+		String timestamp = sdf.format(dt); // formats to a string of numbers.
 
+		// Create the hypothetical context with a long unique name.
 		String hypothetical_context = ContextImpl.findOrCreate(
 				"HYPOTHETICAL_" + timestamp + "_" + target_agent + "_"
 						+ assrtctx).toString();
+
+		// Debug output
 		System.out.println(hypothetical_context);
+
+		// Assert that this hypothetical context inherits facts from the
+		// highest, default context.
 		interpret(">(genlMt " + hypothetical_context + " " + defaultctx + ")");
+
+		/*
+		 * Query all statements that are in the form (beliefs <next agent> ...)
+		 * and (carryover ...). These are to be carried over to the hypothetical
+		 * context.
+		 */
 		ArrayList<String> hypothetical_facts = interpret("?(beliefs "
 				+ target_agent + " ?FACTS)", assrtctx);
 		hypothetical_facts.addAll(interpret("?(carryover ?CARRYOVER)"));
-		System.out.println("TT: "+target_agent);
+		System.out.println("TT: " + target_agent);
+
+		/*
+		 * Assert the (...) part as facts above in the hypothetical context
+		 * because those are what <next agent> believes.
+		 */
 		for (String f : hypothetical_facts) {
 			System.out.println(hypothetical_context + ": " + f);
 			interpret(">" + f, hypothetical_context);
@@ -617,6 +718,12 @@ public class MarthaProcess extends Martha {
 	public String getEnqueuedAction() {
 		return (execution_queue.poll());
 	}
+
+	/*
+	 * Execute, analogous to the execute function in the Martha Engine. However,
+	 * the functions here are a little different and pertain mostly to what gets
+	 * carried over.
+	 */
 
 	public int execute() {
 
@@ -649,34 +756,42 @@ public class MarthaProcess extends Martha {
 					shouldassert = false;
 					interpret(">" + action, assrtctx);
 					state = 0;
-				} 
+				}
+				/*
+				 * Beliefs get carried over with a special focus wrapper to call
+				 * attention to this. This may or may not be the best way to
+				 * approach this
+				 */
 				else if (keywords.get(0).equals("beliefs")) {
 					new_focus = focus_ticker + 1;
-					if(action.contains("(beliefs USER"))
-					{
-						action = action.replace("(beliefs USER ", "(beliefs USER (focus "+new_focus+" ");
+					if (action.contains("(beliefs USER")) {
+						action = action.replace("(beliefs USER ",
+								"(beliefs USER (focus " + new_focus + " ");
 						action = action + ")";
-					}
-					else if(action.contains("(beliefs MARTHA"))
-					{
-						action = action.replace("(beliefs MARTHA ", "(beliefs MARTHA (focus "+new_focus+" ");
+					} else if (action.contains("(beliefs MARTHA")) {
+						action = action.replace("(beliefs MARTHA ",
+								"(beliefs MARTHA (focus " + new_focus + " ");
 						action = action + ")";
 						shouldassert = false;
 					}
-					System.out.println("Exec debug: "+action);
-					interpret(">" + action, assrtctx);
-					state = 0;					
-				}
-				else if (keywords.get(0).equals("why")) {
-					new_focus = focus_ticker + 1;
-					action = action.replace("(why ", "(carryover (focus "+new_focus+" ");
-					action = action + ")";
-					shouldassert = false;
-					System.out.println("Exec debug: "+action);
+					System.out.println("Exec debug: " + action);
 					interpret(">" + action, assrtctx);
 					state = 0;
 				}
-				else {
+				/*
+				 * "why" queries are carried over with the why wrapper removed
+				 * and with a focus wrapper added.
+				 */
+				else if (keywords.get(0).equals("why")) {
+					new_focus = focus_ticker + 1;
+					action = action.replace("(why ", "(carryover (focus "
+							+ new_focus + " ");
+					action = action + ")";
+					shouldassert = false;
+					System.out.println("Exec debug: " + action);
+					interpret(">" + action, assrtctx);
+					state = 0;
+				} else {
 					// No match, don't assert.
 					shouldassert = false;
 				}
@@ -701,6 +816,11 @@ public class MarthaProcess extends Martha {
 		return state;
 	}
 
+	/*
+	 * Evaluate plans much like the Martha Engine does. Here, however, the
+	 * legitimacy threshold is significantly lower because these plans are often
+	 * partial steps, restricted to a single layer.
+	 */
 	public void evaluatePlans() {
 		try {
 
@@ -757,16 +877,21 @@ public class MarthaProcess extends Martha {
 
 				// Queue all actions in the approved plan for execution.
 				for (String c : candidate) {
-					if(mode.equals("backwards"))
-					{
+					/*
+					 * This part gets interesting. If the mode is backwards
+					 * (i.e., we are looking for a path to a goal, the plan will
+					 * be queued for execution in the PARENT process; we go
+					 * backwards! If the mode is forwards, we queue in the
+					 * present process for execution, which will carry over the
+					 * appropriate facts to the CHILD process.
+					 */
+					if (mode.equals("backwards")) {
 						parent.queueExecution(c);
-					}
-					else
-					{
-						System.out.println("Q+EXEC: "+c);
+					} else {
+						System.out.println("Q+EXEC: " + c);
 						queueExecution(c);
 					}
-					
+
 				}
 			} else {
 				// System.out.println("THRESHOLD UNMET: " + candidate + " " +
@@ -781,10 +906,15 @@ public class MarthaProcess extends Martha {
 
 	// Queue action chains to be evaluated. Useful to compare a large
 	// set of possible actions.
+	/*
+	 * Once again, this function is a little different than in the Martha
+	 * Engine. If the mode is forwards, not only does the evaluation get queued
+	 * in the present process, but it also gets queued in the main process, so
+	 * that it can take a look at chains at different stages of completeness.
+	 */
 	public int queueEvaluation(LinkedHashSet<String> path) {
 		evaluation_queue.add(path);
-		if(mode=="forwards")
-		{
+		if (mode == "forwards") {
 			MainProcess.martha.queueEvaluation(path);
 		}
 		System.out.println("EVAL-QUEUED: " + path);

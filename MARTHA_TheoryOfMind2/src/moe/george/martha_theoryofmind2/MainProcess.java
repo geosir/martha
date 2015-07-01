@@ -7,7 +7,6 @@
  * ------------------------------------------------
  * NOTE: Comments added while working.
  * ===================================================*/
-
 package moe.george.martha_theoryofmind2;
 
 import java.io.BufferedReader;
@@ -28,80 +27,101 @@ import com.cyc.session.SessionInitializationException;
 
 public class MainProcess {
 
-	// Declare constants used throughout the program
-	
-	 // The path at which the init folder containing MARTHA knowledge can be found.
+	// ============ Declare constants used throughout the program ============
+
+	/*
+	 * The path at which the init folder containing MARTHA knowledge can be
+	 * found.
+	 */
 	public final static String init_folder = "birthday";
 	public final static String history_file = "history.martha";
-	public static String context = "RealTimeMt"; // The context in which all assertions are made.
-	
-	private static Boolean new_context_each_time = true;	//Create a new context each time so that everything asserted is flushed.
 
-	// Declare variables used throughout
-	public static Martha martha; // The MARTHA object, through which all operations
+	// The context in which all assertions are made.
+	public static String context = "RealTimeMt";
 
-	// through the MARTHA engine are performed.
+	/*
+	 * Create a new context each time so that everything asserted before is
+	 * flushed.
+	 */
+	private static Boolean new_context_each_time = true;
 
+	// ============ Declare variables used throughout ============
+	// The MARTHA Engine, through which all operations are performed.
+	public static Martha martha;
+
+	// Main Process
 	public static void main(String[] args)
 			throws SessionConfigurationException,
 			SessionCommunicationException, SessionInitializationException,
 			CycConnectionException, KBApiException {
 
-		if(new_context_each_time)
-		{
+		/*
+		 * Generate a new context name based on the exact time, down to the
+		 * second. The purpose of this is so that I don't have to keep
+		 * restarting Cyc whenever I make database changes, which is very slow.
+		 */
+		if (new_context_each_time) {
 			SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyyHHmmss");
 			Date dt = new Date();
-			String timestamp = sdf.format(dt); // formats to 09/23/2009 13:53:28.238
-			context = timestamp+"Mt";
+
+			// Formats to a string of numbers based on the date and time.
+			String timestamp = sdf.format(dt);
+
+			context = timestamp + "Mt";
 			System.out.println(context);
 		}
-		
+
 		// Let the user know that we're starting up
 		System.out.println("Initializing MARTHA...");
-		martha = new Martha(context); // Create a new instance of the MARTHA engine, specifying the assert context.
+		martha = new Martha(context); // Create a new instance of the MARTHA
+										// engine, specifying the assert
+										// context.
 
-		//Create MARTHA subcontext
-		String subcontext = ContextImpl.findOrCreate("MARTHA_"+context).toString();
-		martha.interpret(">(genlMt "+subcontext+" "+context+")");
-		
+		// Create MARTHA subcontext
+		String subcontext = ContextImpl.findOrCreate("MARTHA_" + context)
+				.toString();
+		martha.interpret(">(genlMt " + subcontext + " " + context + ")");
+
 		// Initialize the Cyc database from the contents of the init folder by
 		// feeding them line by line through the MARTHA interpreter.
 		Pattern p = Pattern.compile("\\.martha$");
-		for(File f : (new File(init_folder)).listFiles())
-		{
-			//Make sure files have the ".martha" extension EXACTLY AT THE END
+		for (File f : (new File(init_folder)).listFiles()) {
+			// Make sure files have the ".martha" extension EXACTLY AT THE END
 			Matcher m = p.matcher(f.toString());
-			
-			//If they do, load them.
-			if(m.find())
-			{
-				System.out.print("Loading "+f.toString()+"... ");
+
+			// If they do, load them.
+			if (m.find()) {
+				System.out.print("Loading " + f.toString() + "... ");
 				try {
-					martha.initFromFile(f.toString()); // This is done through a
-															// method in the MARTHA
-															// object
+					// Each file is loaded through the Martha Engine by name.
+					martha.initFromFile(f.toString());
 					System.out.println("Done.");
 				} catch (IOException e) {
-					// Catch problems initializing from the file; no big deal, don't
-					// need to crash the program.
+					/*
+					 * Catch problems initializing from the file; no big deal,
+					 * don't need to crash the program.
+					 */
 					e.printStackTrace();
-					System.out.println("Error initializing from file "+f+".");
+					System.out.println("Error initializing from file " + f
+							+ ".");
 				}
 			}
 		}
 
-		//Move MARTHA to subcontext.
+		// Move MARTHA to the MARTHA_ subcontext.
 		martha.changeContext(subcontext);
-		
-		//Get MARTHA actions
+
+		// Update the internal Java list of actions available to Martha.
 		martha.updateActionSet();
-		
+
 		// Print friendly cool MARTHA banner
-		System.out.println("\n\n===============================================");
+		System.out
+				.println("\n\n===============================================");
 		System.out.println("Welcome to MARTHA");
 		System.out.println("Mental-state Aware Real-time THinking Assistant");
 		System.out.println("Copyright (c) George Moe 2015");
-		System.out.println("===============================================\n\n");
+		System.out
+				.println("===============================================\n\n");
 
 		martha.start();
 

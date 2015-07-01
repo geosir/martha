@@ -1,13 +1,17 @@
 /*==================================================
  * MARTHA - Mental-state Aware Real-time THinking Assistant
- * Core engine
+ * The MARTHA Engine v0.0.3
  * -------------------------------------------------
  * This class is the main interface with MARTHA.
  * All useful methods can be found here, including
  * interpreter and planning methods.
- * In the future, this should be all inclusive; 
- * the main method should ONLY be accessing MARTHA
- * through this class.
+ * This class is all-inclusive; the main method should
+ * ONLY be accessing MARTHA through this class, as there
+ * is no need to access any of the other modules directly. 
+ * 
+ * The MARTHA engine is responsible for handling and 
+ * interpreting input, spawning search processes, as well 
+ * as producing output from the results.
  *==================================================*/
 
 package moe.george.martha_theoryofmind2;
@@ -47,49 +51,62 @@ import com.cyc.session.SessionInitializationException;
 
 public class Martha {
 
-	// MARTHA internal variables and their default values.
-	private String initpath = "initfile.martha"; // The path at which
-	// the init file
-	// containing MARTHA
-	// knowledge can be
-	// found.
-	private String assrtctx = "BaseKB"; // The context in which to make
-	// assertions to Cyc
-	private String defaultctx = assrtctx; // The default context (to revert to
-											// after the context changes)
+	// ================= DECLARE VARIABLES ================= //
+	// (MARTHA internal variables and their default values.) //
 
-	// Parameters for the query interface.
-	// MAX-TRANDFORMATION-DEPTH 10 specifies
-	// that the inference engine should take 10 recursive steps when looking for
-	// query answers. By default, this is zero, which lead to it giving only
-	// one-step inferences!
+	/*
+	 * The path at which the init file containing MARTHA knowledge can be found.
+	 */
+	private String initpath = "initfile.martha";
+
+	// The context in which to make assertions to Cyc
+	private String assrtctx = "BaseKB";
+
+	// The default context (to revert to after the context changes)
+	private String defaultctx = assrtctx;
+
+	/*
+	 * Parameters for the query interface. MAX-TRANDFORMATION-DEPTH 10 specifies
+	 * that the inference engine should take 10 recursive steps when looking for
+	 * query answers. By default, this is zero, which lead to it giving only
+	 * one-step inferences!
+	 */
 	private String queryparams = ":MAX-TRANSFORMATION-DEPTH 1000";
 
-	// A comprehensive log of all calls to the interpret method, giving MARTHA
-	// a sense of memory
+	/*
+	 * A comprehensive log of all calls to the interpret method, giving MARTHA a
+	 * sense of memory
+	 */
 	private ArrayList<String[]> logbook = new ArrayList<String[]>();
 
-	// Queues to place actions that are to be executed, and plans to be
-	// evaluated
+	/*
+	 * Queues to place actions that are TO BE executed, and plans to be
+	 * evaluated. Allows for potential asynchronous planning development.
+	 */
 	private Queue<String> execution_queue = new LinkedList<String>();
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
-	// Constants used in the recursive planning search.
-	//private int max_forwards_depth = 10; // Maximum forward steps in the plan
-	//private int max_backwards_depth = -5; // Maximum backwards dependencies in
-											// the plan
-	private int legitimacy_threshold = 20; // Minimum score needed for a plan to
-											// be even considered for execution.
+	// Minimum score needed for a plan to be even considered for execution.
+	private int legitimacy_threshold = 20;
 
 	// An object to run MARTHA's consciousness
 	MarthaConsciousness mc;
 
-	// An object to store MARTHA's simulation of the user.
-	Martha user;
-	
+	/*
+	 * The starting depth of Martha's nested planning simulations. The count
+	 * starts here, in the Martha Engine, and decrements to zero
+	 */
 	protected int depth = 3;
-	
+
+	/*
+	 * A ticker tag that's incremented regularly to separate (focus ?X)
+	 * statements from each other, so that MARTHA knows what the actual focus
+	 * is. This has potential to be developed into a timer mechanism in the
+	 * future.
+	 */
 	protected static int focus_ticker = 0;
+
+	// A list of executable actions available to MARTHA
 	protected static ArrayList<String> action_set;
 
 	// Constructor for the MARTHA class
@@ -98,7 +115,7 @@ public class Martha {
 			CreateException, KBTypeException {
 
 		// Let everyone know that a new MARTHA is being instantiated
-		System.out.println("Creating new MARTHA...");
+		System.out.println("Creating new MARTHA Engine...");
 
 		// Connect to the Cyc server
 		System.out.println("Acquiring a cyc server... "
@@ -156,12 +173,11 @@ public class Martha {
 		initFromFile(initpath);
 	}
 
-	//Update MARTHA's awareness of MARTHA Actions
-	public void updateActionSet()
-	{
+	// Update MARTHA's awareness of MARTHA Actions
+	public void updateActionSet() {
 		action_set = interpret("?(isa ?SOMETHING MarthaAction)");
 	}
-	
+
 	/*********************
 	 * THIS IS COOL! A Cyc interpreter I wrote so that *input from file* could
 	 * be used, for purposes such as knowledge initialization. It interprets the
@@ -171,14 +187,14 @@ public class Martha {
 	public ArrayList<String> interpret(String line) {
 		return interpret(line, assrtctx);
 	}
-	
+
 	public ArrayList<String> interpret(String line, String context) {
 
 		// ArrayList to store output, which only comes from the query (for now).
 		ArrayList<String> results = new ArrayList<String>();
 		// Boolean indicating whether the entry should be logged or ignored.
 		Boolean ignore = false;
-		
+
 		// Wrapped in try-catch in order to not die if there is bad input.
 		try {
 
@@ -279,12 +295,10 @@ public class Martha {
 					if (line.substring(1, 2).equals("@")) {
 						changeContext(defaultctx);
 					} else {
-						if(line.contains("?"))
-						{
-							changeContext(line.substring(1).replace("?", defaultctx));
-						}
-						else
-						{
+						if (line.contains("?")) {
+							changeContext(line.substring(1).replace("?",
+									defaultctx));
+						} else {
 							changeContext(line.substring(1));
 						}
 					}
@@ -306,7 +320,7 @@ public class Martha {
 		} catch (Exception e) { // Catch error and give debug info, but don't
 								// die.
 
-			//e.printStackTrace();
+			// e.printStackTrace();
 			System.out
 					.println("Warning: Could not interpret \"" + line + "\".");
 			results.add("ERROR");
@@ -317,61 +331,65 @@ public class Martha {
 		return (results);
 	}
 
-	// Start for a separate query method, but it doesn't seem worth it.
-	/*
-	 * private HashMap<String,ArrayList<String>> query(String question) {
-	 * HashMap<String,ArrayList<String>> results = new
-	 * HashMap<String,ArrayList<String>>(); try { Query q = new Query(question,
-	 * "InferencePSC", queryparams); Collection<Variable> queryVars =
-	 * q.getQueryVariables(); KBInferenceResultSet queryResults =
-	 * q.getResultSet();
-	 * 
-	 * if (!(queryResults.getCurrentRowCount() == 0)) { while
-	 * (queryResults.next()) { for (Variable v : queryVars) {
-	 * 
-	 * System.out.print(v + ": "); String result =
-	 * queryResults.getKBObject(v).toString(); if(!results.keySet().contains(v))
-	 * { ArrayList<String> newone = results.get(v); newone.add(result);
-	 * results.put(v.toString(), newone); } else { results.get(v).add(result); }
-	 * System.out.println(result); } } } else { //System.out.println("None."); }
-	 * queryResults.close(); q.close(); } catch (Exception e) {} return results;
-	 * }
-	 */
-
-	public static void incrementFocusTicker()
-	{
+	// A method for external entities to increment the focus ticker.
+	public static void incrementFocusTicker() {
 		focus_ticker++;
 	}
-	
-	// The main function should use this method when collecting input from the
-	// user.
-	// It is a wrapper for the interpret() function which also asserts to the
-	// Cyc KB
-	// that the user should know the facts that he asserts himself.
+
+	/*
+	 * The main function should use this method when collecting input from the
+	 * user. It is a wrapper for the interpret() function which also asserts to
+	 * the Cyc KB that the user should know the facts that he asserts himself.
+	 */
 	public ArrayList<String> interpretFromUser(String input) {
 
 		// ArrayList to store results from interpet()
 		ArrayList<String> results = new ArrayList<String>();
+
+		// Check that the input is of a valid length, otherwise do nothing.
 		if (input.length() > 1) {
+
+			// Interpret the input.
 			results = interpret(input);
-			// If the input was an assertion, assert that the user knows about
-			// the contents of the assertion.
+
+			/*
+			 * If the input was an assertion, assert that the user knows about
+			 * the contents of the assertion. Also assert that the user said it.
+			 * Then wonder why the user said it
+			 */
 			if (input.substring(0, 1).equals(">")) {
 				interpret(">(knows USER " + input.substring(1) + ")");
 				interpret(">(says USER " + input.substring(1) + ")");
-				
-				interpret(">(focus "+(focus_ticker+1)+" (why (says USER "+input.substring(1)+")))");
+
+				/*
+				 * Explore possibilities for *why* the user said what he said.
+				 * TODO: can be extended for queries too, so that Martha can
+				 * discern goals from questions.
+				 */
+				interpret(">(focus " + (focus_ticker + 1) + " (why (says USER "
+						+ input.substring(1) + ")))");
 			}
+
 			// ^ : special MARTHA escape command
 			else if (input.substring(0, 1).equals("^")) {
 				String command = input.substring(1);
 				switch (command) {
+
+				// toomuch : Use if Martha is giving too much information.
 				case "toomuch":
+
+					// If there is too much info, the threshold is too low.
+					// Increase the legitimacy threshold.
 					legitimacy_threshold += 5;
 					System.out
 							.println("New threshold: " + legitimacy_threshold);
 					break;
+
+				// toolittle : Use if Martha is giving too little information.
 				case "toolittle":
+
+					// If there is too little info, the threshold is too high.
+					// Decrease the legitimacy threshold.
 					legitimacy_threshold -= 5;
 					System.out
 							.println("New threshold: " + legitimacy_threshold);
@@ -382,9 +400,14 @@ public class Martha {
 		}
 		// Otherwise, do nothing. No meaningful input.
 
+		/*
+		 * Print results so that the user can see them. (interpret no longer has
+		 * native output.)
+		 */
 		for (String r : results) {
 			System.out.println(r);
 		}
+
 		// Return interpret results.
 		return (results);
 	}
@@ -424,52 +447,114 @@ public class Martha {
 		// Return that quantity.
 		return level;
 	}
-	
+
+	/*
+	 * This is the biggest feature of this particular version of the MARTHA
+	 * engine. It is capable of using (focus ?X) statements and exploring
+	 * possible the user's intentions and goals with those statements. For
+	 * instance, in particular to the MARTHA test scenario, when the user said
+	 * "Today is my birthday," MARTHA could find that the user expects MARTHA to
+	 * say "Happy birthday!" because it would make him happy; thus MARTHA would
+	 * say "Happy birthday!"
+	 */
+
+	/*
+	 * Explore with no args; this Martha Engine method redirects to the Martha
+	 * Process explore, with a few extra operations to set things up and handle
+	 * returned information.
+	 */
 	public void explore() {
-		
-		System.out.println("MARTHA ===EXPLORE=== "+depth);
+
+		// Using try-catch to silence fatal errors.
 		try {
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
+			/*
+			 * Create a new Martha Process. Martha Processes are used to run
+			 * planning processes. This particular process represents Martha's
+			 * actual thinking process, so the contexts are preserved. The depth
+			 * is one lower to differentiate between the Martha Process and the
+			 * Martha Engine.
+			 */
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx,
+					defaultctx, depth - 1, "MARTHA");
+
+			// Use the Martha Process to plan
 			martha_p.explore();
-			//return martha_p.explore();
+
 		} catch (Exception e) {
+			// Catch errors and print a stack trace.
 			e.printStackTrace();
 		}
-		System.out.println("MARTHA ===EXPLORE=== "+depth);
-		//return new ArrayList<ArrayList<String>>();
-		
+
+		/*
+		 * The final layer of Martha Process's explore will queue several plan
+		 * possibilities to be evaluated by the Martha Engine. We evalute those
+		 * plans now.
+		 */
 		evaluatePlans();
-		//execute();
-		
-	}
-	
-	public void explore(String s) {
-		
-		System.out.println("MARTHA ===EXPLORE=== "+depth);
-		//ArrayList<String> chain = new ArrayList<String>();
-		try {
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
-			martha_p.explore(s);
-			//chain.addAll(martha_p.explore(s));
-			//chain.add(s);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.out.println("MARTHA ===EXPLORE=== "+depth);
-		//return chain;
 	}
 
-	public void planForGoals() {
-		
-		System.out.println("MARTHA ============== "+depth);
+	// Explore possible intentions, seeded with a single string.
+	public void explore(String s) {
+
+		// A nice debug marker.
+		System.out.println("MARTHA ===EXPLORE=== " + depth);
+
+		// Try-catch to silence fatal errors.
 		try {
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth-1, "MARTHA");
-			martha_p.planForGoals();
+			/*
+			 * Create a Martha Process to run the explore process. This process
+			 * represents Martha's actual thinking process, so the contexts are
+			 * preserved. The depth is one lower to differentiate between the
+			 * Martha Process and the Martha Engine.
+			 */
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx,
+					defaultctx, depth - 1, "MARTHA");
+
+			// Explore the string s within the Martha Process.
+			martha_p.explore(s);
+
 		} catch (Exception e) {
+			// Catch errors and print a stack trace.
 			e.printStackTrace();
 		}
-		System.out.println("MARTHA ============== "+depth);
+
+		// A nice debug marker.
+		System.out.println("MARTHA ===EXPLORE=== " + depth);
 	}
+
+	/*
+	 * Given a goal, find a path of action that gets to the goal. This is
+	 * largely a wrapper for the planForGoals method in Martha Process.
+	 */
+	public void planForGoals() {
+
+		// A nice debug marker.
+		System.out.println("MARTHA ============== " + depth);
+
+		// Try-catch to silence fatal errors.
+		try {
+			// Spawn a new Martha Process to take care of the planning
+			// algorithm.
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx,
+					defaultctx, depth - 1, "MARTHA");
+
+			// Run planForGoals in the Martha Process.
+			martha_p.planForGoals();
+		} catch (Exception e) {
+			// Catch errors and prince a stack trace.
+			e.printStackTrace();
+		}
+
+		// A nice debug marker.
+		System.out.println("MARTHA ============== " + depth);
+	}
+	
+	/***********************
+	 * NOTE!
+	 * THE ACTUAL MARTHA SEARCH FUNCTIONS, WITH THEIR DEPENDENCIES, HAVE BEEN MOVED TO MARTHA PROCESS.
+	 * All planning is to be done through a Martha Process.
+	 * Execution and evaluation is still needed by the engine.	 * 
+	 ***********************/
 
 	// Method to see if a goal is persistent (should not be unasserted
 	// automatically)
@@ -513,7 +598,6 @@ public class Martha {
 	// Enables actions to be executed all at once (non-blocking).
 	public int queueExecution(String action) {
 		execution_queue.add(action);
-		// System.out.println("EXEC-QUEUED: " + action);
 		return 0;
 	}
 
@@ -521,7 +605,6 @@ public class Martha {
 	// set of possible actions.
 	public int queueEvaluation(LinkedHashSet<String> path) {
 		evaluation_queue.add(path);
-		// System.out.println("EVAL-QUEUED: " + path);
 		return 0;
 	}
 
@@ -534,7 +617,7 @@ public class Martha {
 	 * MARTHA functions are Cyc constants that have special functions in the
 	 * MARTHA engine. The one here is say-TheMARTHAFunction, which, when
 	 * executed, prints the specified a line of output for the user to see.
-	 */
+	 ***********************/
 	public int execute() {
 
 		// Store the state of the operation. 0 is suceessful.
@@ -546,37 +629,32 @@ public class Martha {
 
 		// While there are still actions in the queue...execute them.
 		while (action != null) {
-			// Let the user know that action is being executed
-			// Silenced.
-			// System.out.println("Execute " + action);
 
-			// Regular expression to extract 1) the functional statement of the
-			// action and
-			// 2) its parameters. Matcher applies this regular expression to the
-			// action.
-			/*Pattern p = Pattern
-					.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
-			Matcher m = p.matcher(action);*/
-
-			 System.out.println("ACTION("+getUtility(action)+"): "+action);
+			// Some nice debug output.
+			System.out.println("ACTION(" + getUtility(action) + "): " + action);
 
 			// Boolean to store whether or not the action is to be asserted.
 			boolean shouldassert = true;
-			
+
+			// A list of key functional words extracted from the action.
 			ArrayList<String> keywords = getKeyWords(action);
 
-			// If there is a match...
+			// If there are keywords in the action...
 			if (!keywords.isEmpty()) {
+				// ...identify them by the first keyword.
 
+				// XXX: DEPRECATED. USE (says MARTHA ...) INSTEAD.
 				// If the function expression is say-TMF...
 				// SYNTAX: (say-TMF <thing to be said>)
 				// Where TMF is short for "TheMARTHAFunction"
 				if (keywords.get(0).equals("say-TMF")) {
-					
+
+					// Parse the action for this Martha Function using a regular
+					// expression.
 					Pattern p = Pattern
 							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 					Matcher m = p.matcher(action);
-					
+
 					// Say what needs to be said.
 					System.out.println();
 					System.out.println("=================================");
@@ -584,69 +662,97 @@ public class Martha {
 					System.out.println("=================================");
 					System.out.println();
 
+					// Action executed completely.
 					state = 0;
 
 				}
+
+				/*
+				 * If the function is says MARTHA... (identical to say-TMF, but
+				 * can also handle quotations) SYNTAX: (say MARTHA <thing to be
+				 * said>)
+				 */
 				if (keywords.get(0).equals("says")) {
 
+					// Parse the action for this Martha Function using a regular
+					// expression.
 					Pattern p = Pattern
 							.compile("\\(says MARTHA ([\\(\\)\\w\\s]+)\\)");
 					Matcher m = p.matcher(action);
-						
-					if(!m.matches())
-					{
+
+					// If this particular call to says uses quotation marks, use
+					// this regex instead.
+					if (!m.matches()) {
+						// Regular expression to handle quotation marks.
 						p = Pattern
 								.compile("\\(says MARTHA \\\"([\\(\\)\\w\\s.,!?;:]+)\\\"\\)");
 						m = p.matcher(action);
 					}
-					
-					if(m.matches())
-					{
+
+					if (m.matches()) {
 						// Say what needs to be said.
 						System.out.println();
 						System.out.println("=================================");
 						System.out.println("MARTHA>>> " + m.group(1));
 						System.out.println("=================================");
 						System.out.println();
-	
+
+						// Action executed completely.
 						state = 0;
 					}
 				}
-				// If the function expression is query-TMF...
-				// SYNTAX: (query-TMF <thing to be asked>)
+				/*
+				 * If the function expression is query-TMF... Ask the user a
+				 * question. SYNTAX: (query-TMF <thing to be asked>)
+				 */
 				else if (keywords.get(0).equals("query-TMF")) {
 
+					// Parse the action for this Martha Function using a regular
+					// expression.
 					Pattern p = Pattern
 							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 					Matcher m = p.matcher(action);
-					
-					// Ask the user what needs to be asked.
-					System.out.println();
-					System.out.println("=================================");
-					System.out.println("MARTHA>>> " + m.group(2) + "?");
-					System.out.println("=================================");
-					System.out.println();
 
-					purgeQueue(execution_queue); // Purge the queue to halt
-													// execution and let the
-													// user respond to the
-													// question.
-					state = 1; // Pending user input state.
-				} else if (keywords.get(0).equals("contradict-TMF")) {
+					if (m.matches()) {
+						// Ask the user what needs to be asked.
+						System.out.println();
+						System.out.println("=================================");
+						System.out.println("MARTHA>>> " + m.group(2) + "?");
+						System.out.println("=================================");
+						System.out.println();
 
+						purgeQueue(execution_queue); // Purge the queue to halt
+														// execution and let the
+														// user respond to the
+														// question.
+						state = 1; // Pending user input state.
+					}
+				}
+
+				/*
+				 * If the function expression is contradict-TMG... Alert the
+				 * user that something is not true. SYNTAX: (contradict-TMF
+				 * <thing to contradict>)
+				 */
+				else if (keywords.get(0).equals("contradict-TMF")) {
+
+					// Parse the action for this Martha Function using a regular
+					// expression.
 					Pattern p = Pattern
 							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 					Matcher m = p.matcher(action);
-					
-					// Ask the user what needs to be asked.
-					System.out.println();
-					System.out.println("=================================");
-					System.out.println("MARTHA>>> Hey! " + m.group(2)
-							+ " is not true!");
-					System.out.println("=================================");
-					System.out.println();
 
-					state = 0;
+					if (m.matches()) {
+						// Ask the user what needs to be asked.
+						System.out.println();
+						System.out.println("=================================");
+						System.out.println("MARTHA>>> Hey! " + m.group(2)
+								+ " is not true!");
+						System.out.println("=================================");
+						System.out.println();
+
+						state = 0;
+					}
 				} else {
 					// No match, don't assert.
 					shouldassert = false;
@@ -656,9 +762,15 @@ public class Martha {
 				shouldassert = false;
 			}
 
+			/*
+			 * Should this statement be asserted; i.e., did this function
+			 * actually happen, or is it just a metafunction?
+			 */
 			if (shouldassert) {
 				// Assert that it has been done.
 				interpret(">" + action);
+
+				// Assert the execution time of this action as NOW.
 				interpret(">(exactAssertTime " + action
 						+ " (IndexicalReferentFn Now-Indexical))");
 			}
@@ -744,27 +856,53 @@ public class Martha {
 				for (String c : candidate) {
 					queueExecution(c);
 				}
-			} else {
-				System.out.println("THRESHOLD UNMET: " + candidate + " " + highest_value);
+			}
+			// If the legitimacy threshold has not been met...
+			else {
+				// Some neat debug output.
+				System.out.println("THRESHOLD UNMET: " + candidate + " "
+						+ highest_value);
+
+				/*
+				 * Create a temporary indicator to see if the focus ticker has
+				 * incremented. this is used with the for-loop below so that
+				 * it's just incremented once; all focus statements produced
+				 * here are on the same level.
+				 */
 				int next_focus = focus_ticker;
-				if(candidate != null)
-				{
-					for(String c : candidate)
-					{
-						if(action_set.contains(getKeyWords(c).get(0)))
-						{
+
+				// If there is a candidate at all...
+				if (candidate != null) {
+					/*
+					 * For each item in the candidate, create a focus statement
+					 * to explore if it refers to an valid MARTHA action.
+					 */
+					for (String c : candidate) {
+						// If the key word of the action is in the MARTHA action
+						// set...
+						if (action_set.contains(getKeyWords(c).get(0))) {
+							// Get the next focus tick
 							next_focus = focus_ticker + 1;
-							interpret(">(focus "+next_focus+" (why "+c+"))");
+
+							// Assert the focus statement with the next focus
+							// tick.
+							interpret(">(focus " + next_focus + " (why " + c
+									+ "))");
 						}
 					}
-					if(focus_ticker != next_focus)
-					{
+
+					/*
+					 * If the focus ticker has changed, this means there are
+					 * valid focus statements. Go ahead and explore these.
+					 */
+					if (focus_ticker != next_focus) {
 						focus_ticker = next_focus;
 						explore();
 					}
 				}
 			}
 		} catch (Exception e) {
+			// Catch errors and print a report.
 			e.printStackTrace();
 			System.out.println("Warning: Evaluation failed.");
 		}
@@ -779,22 +917,16 @@ public class Martha {
 	// Cyc KB.
 	public Float getBaseUtility(String state) {
 		try {
-			// Return the value from a query.
-
-			// Lots of work here to try to get a temporal utility value...
-			// But I want to get it working internal in CycL, rather than in
-			// Java.
-			// interpretFromUser("?(exactAssertTime "+state+" ?TIME)");
-
+			// Query the base utility value from the Cyc KB.
 			ArrayList<String> utility_value = interpret("?(baseUtilityValue USER "
 					+ state + " ?VALUE)");
-			// System.out.println("[[[["+utility_value+"]]]]");
+
+			// Return the most recent result.
 			return (new Float(utility_value.get(utility_value.size() - 1)));
+
 		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
 			// If the query makes no sense, or if there's an error, then default
 			// to zero.
-			// System.out.println("ERROR!!!!");
 			return 0f;
 		}
 	}
@@ -811,6 +943,7 @@ public class Martha {
 			// If the scheduled time exists...
 			if (!exactasserttime.isEmpty()
 					&& !exactasserttime.contains("ERROR")) {
+
 				// Parse the scheduled time and get the current time
 				SimpleDateFormat sdf = new SimpleDateFormat(
 						"EEE MMM dd HH:mm:ss z yyyy");
@@ -835,16 +968,14 @@ public class Martha {
 							(timeuntil + 45) / 5)));
 				}
 
-				// System.out.println("<<<"+yield+">>>");
 				return yield;
 
 			} else {
 				return 1f;
 			}
 		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
 			// If the query makes no sense, or if there's an error, then default
-			// to one (full utility).
+			// to 1 (full utility).
 			return 1f;
 		}
 	}
@@ -853,10 +984,10 @@ public class Martha {
 	// baseUtiliityValue and utilityYield.
 	public Float getUtility(String state) {
 		try {
+			// Total utility is the product of the base utility and the utility
+			// yield.
 			return (getBaseUtility(state) * getUtilityYield(state));
-			// return 0f;
 		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
 			// If the query makes no sense, or if there's an error, then default
 			// to zero.
 			return 0f;
@@ -866,20 +997,20 @@ public class Martha {
 	// Method to change the context of assertions. To be used in the future
 	// for changing timescale consciousness.
 	public void changeContext(String context) {
-		try
-		{
+		try {
 			ContextImpl.findOrCreate(context);
 			assrtctx = context;
-		} catch (Exception e)
-		{
-			System.out.println("ERROR: Could not change context to "+context+".");
+		} catch (Exception e) {
+			System.out.println("ERROR: Could not change context to " + context
+					+ ".");
 		}
-		
+
 	}
 
+	// A method to change the default context (the context returned to by @@)
 	public void changeDefaultContext(String context) {
 		defaultctx = context;
-		System.out.println(depth+" "+defaultctx);
+		System.out.println(depth + " " + defaultctx);
 	}
 
 	// Start MARTHA's consciousness
@@ -891,6 +1022,8 @@ public class Martha {
 		mc.start();
 	}
 
+	// A way for the Main Process to "wake" Martha Consciousness from a dream
+	// state.
 	public void wake() {
 		mc.setState(4);
 	}

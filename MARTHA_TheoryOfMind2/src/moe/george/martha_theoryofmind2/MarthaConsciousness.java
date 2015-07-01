@@ -11,13 +11,32 @@ package moe.george.martha_theoryofmind2;
 public class MarthaConsciousness implements Runnable {
 
 	// Instantiate some variables
+
 	private String name = "m_conscious";
-	//private int state = 2;
-	/* 0 = dream
-	 * 1 = contextual search
-	 * 2 = goal driven search
+
+	/*
+	 * With this version of MARTHA, it is possible for MARTHA to enter different
+	 * states of consciousness. State 0, or dreaming, is intended to be MARTHA's
+	 * idle state in which it can freely think up LONG chains of actions, with
+	 * possible utility in the future. State 1 is like dreaming, but with
+	 * shorter chains with seeds based in what was recently queried or said.
+	 * State 2 is a goal driven search that is just a complete backwards-chain,
+	 * intended to be used to find actions that can be used to fulfill a goal.
+	 * 
+	 * Martha can change freely between these states, depending on recent idle
+	 * cycles. There are mechanisms here to control this.
+	 * 
+	 * This is slated to be implemented in a future Martha Consciousness.
 	 */
+	// private int state = 2;
+	/*
+	 * 0 = dream 1 = contextual search 2 = goal driven search
+	 */
+
+	// Martha Conscioussness's reference to the main MARTHA Engine.
 	private Martha martha;
+
+	// The Martha Consciousness thread.
 	private Thread t;
 
 	// Get the Martha instance from the MainProcess.
@@ -25,104 +44,46 @@ public class MarthaConsciousness implements Runnable {
 		martha = m;
 	}
 
-	// The consciousness loop
+	// The consciousness loop.
 	@Override
 	public void run() {
 		int counter = 0; // To keep track of cycles
-		//int idlecounter = 0; //To keep a running total of consecutive idle cycles.
-		//int stuckcounter = 0; //To keep a running total of consecutive non-execution cycles.
 		while (true) {
-			//idlecounter++;
 			counter++; // increment counter
-			//System.out.print(".");			
-			
-			/*//Check current situation and set state accordingly.
-			//If there are goals that are immediate (non-persistent) goals, then plan directly for them.
-			if(!martha.interpret("?(and (desires USER ?DESIRES) (unknownSentence (goalIsPersistent (desires USER ?DESIRES) True)))").isEmpty())
-			{
-				idlecounter = 0;
-				state = 2;
-			}
-			else
-			{
-				idlecounter++;
-				
-				//If MARTHA has been idle for more than 10 cycles, then dream
-				if(idlecounter > 10)
-				{
-					state = 0;
-				}
-				//Otherwise just do contextual search
-				else
-				{
-					state = 1;
-				}
-			}
-			
-			//A state of 4 means to wake up,
-			//whether the MainProcess just got user input or internal
-			//processes say to wake up.
-			//Whether it is planning or it's dreaming, kick it out the loop.
-			if(state == 4 || stuckcounter > 3)
-			{
-				state = 1;
-			}
-			
-			
-			
-			// Plan for goals
-			switch(state)
-			{
-			case 0:
-				System.out.println("DREAM");
-				martha.dream();
-				break;
-			case 1:
-				System.out.println("IDLE");
-				martha.planGenerally();
-				break;
-			case 2:
-				System.out.println("PLAN");
-				martha.planForGoals();
-				break;
-			default:
-				System.out.println("DEFAULT");
-				martha.planGenerally();
-			}*/
-			
-			martha.planForGoals();
-			martha.explore();
-			
 
-			// If we've accumulated 10 cycles worth of plans,
-			// Evaluate them and execute the results.
-			if (counter%1==0) {
-				
+			/*
+			 * NOTE: Much of the things relating to state have been commented
+			 * out from this implementation of Martha Conciousness, because it's
+			 * not the focus here. To see the original text, check out
+			 * TheoryOfMind1, or go back in a previous git version.
+			 */
+
+			// Handle direct goals first...
+			martha.planForGoals();
+
+			// ...then take a look at less obvious intentions.
+			martha.explore();
+
+			/*
+			 * If we've accumulated 10 cycles (DEBUG: just 1 cycle for now)
+			 * worth of plans, Evaluate them and execute the results.
+			 */
+			if (counter % 1 == 0) {
+
+				//Execute the queued plans.
 				martha.execute();
-				
-				//Show what MARTHA knows
+
+				// DEBUG: Dump of USER/MARTHA knowledge.
 				System.out.println("USER knows:");
 				martha.interpretFromUser("?(knows USER ?WHAT)");
 				System.out.println("USER believes:");
 				martha.interpretFromUser("?(beliefs USER ?WHAT)");
 				System.out.println("MARTHA knows:");
 				martha.interpretFromUser("?(knows MARTHA ?WHAT)");
-				//System.out.println("MARTHA surmises:");
-				//martha.interpretFromUser("?(surmises MARTHA ?WHAT)");
-
 				
-				//int results = martha.execute();
-				/*if(results==99)
-				{
-					stuckcounter++;
-				}
-				else
-				{
-					stuckcounter = 0;
-				}*/
-				
-				for(int i=0; i<5; i++)
-				{
+				//DEBUG: Pause to allow the operator to inspect debug code. 
+				//Print dots to show time.
+				for (int i = 0; i < 5; i++) {
 					System.out.print(".");
 					try {
 						Thread.sleep(1000);
@@ -133,8 +94,8 @@ public class MarthaConsciousness implements Runnable {
 				}
 				System.out.println();
 			}
-			
-			//Shift focus to next cycle
+
+			// Shift focus to next cycle
 			Martha.incrementFocusTicker();
 		}
 	}
@@ -148,10 +109,9 @@ public class MarthaConsciousness implements Runnable {
 			t.start();
 		}
 	}
-	
-	public void setState(int s)
-	{
-		//state = s;
+
+	public void setState(int s) {
+		// state = s; //UNUSED for now.
 	}
 
 }
