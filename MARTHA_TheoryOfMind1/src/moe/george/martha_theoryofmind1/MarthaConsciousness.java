@@ -101,19 +101,19 @@ public class MarthaConsciousness implements Runnable {
 			 */
 			switch (state) {
 			case 0:
-				System.out.println("DREAM");
+				//System.out.println("DREAM");
 				martha.dream();
 				break;
 			case 1:
-				System.out.println("IDLE");
+				///System.out.println("IDLE");
 				martha.planGenerally();
 				break;
 			case 2:
-				System.out.println("PLAN");
+				//System.out.println("PLAN");
 				martha.planForGoals();
 				break;
 			default:
-				System.out.println("DEFAULT");
+				///System.out.println("DEFAULT");
 				martha.planGenerally();
 			}
 

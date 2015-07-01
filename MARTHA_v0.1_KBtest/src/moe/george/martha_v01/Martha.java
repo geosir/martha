@@ -108,6 +108,10 @@ public class Martha {
 
 	// A list of executable actions available to MARTHA
 	protected static ArrayList<String> action_set;
+	
+	private int max_focus_shifts = 100;
+	private int initial_focus;
+
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException,
@@ -496,6 +500,9 @@ public class Martha {
 	// Explore possible intentions, seeded with a single string.
 	public void explore(String s) {
 
+		//Set the initial focus count, used for focus auditing and loop prevention.
+		initial_focus = focus_ticker;
+		
 		// A nice debug marker.
 		System.out.println("MARTHA ===EXPLORE=== " + depth);
 
@@ -757,6 +764,15 @@ public class Martha {
 					// No match, don't assert.
 					shouldassert = false;
 				}
+				
+				//DEBUG: Pause so I can read the action.
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			} else {
 				// no match, don't assert.
 				shouldassert = false;
@@ -880,7 +896,7 @@ public class Martha {
 					for (String c : candidate) {
 						// If the key word of the action is in the MARTHA action
 						// set...
-						if (action_set.contains(getKeyWords(c).get(0))) {
+						if (action_set.contains(getKeyWords(c).get(0)) && !areWeLost()) {
 							// Get the next focus tick
 							next_focus = focus_ticker + 1;
 
@@ -1026,5 +1042,14 @@ public class Martha {
 	// state.
 	public void wake() {
 		mc.setState(4);
+	}
+	
+	public boolean areWeLost()
+	{
+		if((focus_ticker - initial_focus )>max_focus_shifts)
+		{
+			return true;
+		}
+		return false;
 	}
 }

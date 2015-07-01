@@ -95,11 +95,11 @@
 
 #Set the utility values of KNOWS
 >(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (knows USER ?THING) 10))
-#>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
 #>(implies (and ?THING (unknownSentence (knows MARTHA (knows USER ?THING)))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 10))
 #>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
 >(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 10))
-#>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) -10))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) 5))
 
 #Utility values of DESIRES
 >(implies (and (desires USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER ?SOMETHING 20))

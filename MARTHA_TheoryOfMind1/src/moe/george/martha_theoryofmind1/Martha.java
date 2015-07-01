@@ -829,6 +829,7 @@ public class Martha {
 				//Assert that it has been done.
 				interpret(">" + action);
 				interpret(">(exactAssertTime "+action+" (IndexicalReferentFn Now-Indexical))");
+				System.out.println(">(exactAssertTime "+action+" (IndexicalReferentFn Now-Indexical))");
 			}
 			
 			// Get the next action
@@ -885,7 +886,7 @@ public class Martha {
 				// Add up the value of all actions in the plan
 				for (String s : a) {
 					current_value = getUtility(s) + current_value;
-					//System.out.println("ACTION("+getUtility(s)+"): "+s);
+					System.out.println("ACTION("+getUtility(s)+"): "+s);
 				}
 
 				// If the plan is of equal or higher value of the highest value,
@@ -969,14 +970,15 @@ public class Martha {
 				if(timeuntil > 0)
 				{
 					//Sigmoid function if event is in the future (yield increases as event approaches) 
-					yield =  (float) (2/(1+Math.pow(2.71828, (30 - timeuntil)/5))-1);
+					yield =  (float) (1/(1+Math.pow(2.71828, (30 - timeuntil)/5)));
 				}
 				else
 				{
 					//Sigmoid function if event is in the past (yield increases as event recedes) 
-					 yield =  (float) (2/(1+Math.pow(2.71828, (timeuntil - 30)/5))-1);
+					 yield =  (float) (1/(1+Math.pow(2.71828, (30+timeuntil)/5)));
 				}
 				
+				System.out.println("<<<"+yield+">>>");
 				return yield;
 				
 			}
@@ -985,7 +987,7 @@ public class Martha {
 				return 1f;
 			}
 		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
+			//System.out.println("STATE VALUE ERROR: "+state);
 			// If the query makes no sense, or if there's an error, then default
 			// to one (full utility).
 			return 1f;
@@ -999,7 +1001,7 @@ public class Martha {
 			return(getBaseUtility(state)*getUtilityYield(state));
 			//return 0f;
 		} catch (Exception e) {
-			// System.out.println("STATE VALUE ERROR: "+state);
+			System.out.println("STATE VALUE ERROR: "+state);
 			// If the query makes no sense, or if there's an error, then default
 			// to zero.
 			return 0f;

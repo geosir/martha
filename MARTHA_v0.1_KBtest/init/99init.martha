@@ -13,8 +13,8 @@
 ### MISC ###
 
 #The user wants to go to the CBGs.
-=(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
-=(baseUtilityValue USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens) 30)
+#=(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
+#=(baseUtilityValue USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens) 30)
 #This is a very important desire.
 #=(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
 
@@ -23,4 +23,4 @@
 =(weather ChicagoBotanicGardens SunnyArea)
 
 #The user knows that the CBGs are sunny.
-=(knows USER (weather ChicagoBotanicGardens SunnyArea))
+=(beliefs USER (weather ChicagoBotanicGardens SunnyArea))

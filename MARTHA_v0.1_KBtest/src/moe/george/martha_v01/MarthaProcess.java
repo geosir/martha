@@ -74,7 +74,7 @@ public class MarthaProcess extends Martha {
 
 	// Minimum score needed for a plan to be even considered for execution.
 	private int legitimacy_threshold = 0;
-
+	
 	// The main constructor.
 	public MarthaProcess(Martha parent_martha, String context,
 			String defaultcontext, int init_depth, String target_agent)
@@ -192,7 +192,7 @@ public class MarthaProcess extends Martha {
 
 		// Set the mode for this process to a forwards search.
 		mode = "forwards";
-
+		
 		// Some nice debug output.
 		System.out.println("FOCUS TICKER: " + focus_ticker);
 		interpretFromUser("?(focus ?WHAT ?SOMETHING)");

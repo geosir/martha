@@ -1,5 +1,5 @@
 /* ===================================================
- * MARTHA - Theory of Mind Attempt 1
+ * MARTHA - Unified Assistive AI Attempt v0.1
  * Mental-state Aware Real-time THinking Assistant
  * ------------------------------------------------
  * This fork attempts to implement a theory of mind
@@ -33,7 +33,7 @@ public class MainProcess {
 	 * The path at which the init folder containing MARTHA knowledge can be
 	 * found.
 	 */
-	public final static String init_folder = "birthday";
+	public final static String init_folder = "init";
 	public final static String history_file = "history.martha";
 
 	// The context in which all assertions are made.
