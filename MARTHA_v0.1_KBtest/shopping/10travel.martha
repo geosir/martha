@@ -1,0 +1,26 @@
+### DEFINE CONSTANTS ###
+
+
+
+### DEFINE FUNCTIONS ###
+
+#Concept of driving to a certain place. Takes 2 args, a person and a destination.
+*driveTo
+=(arity driveTo 2)
+=(argIsa driveTo 1 Person)
+=(argIsa driveTo 2 Place)
+#Driving somwhere causes the person to be at the place.
+>(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#The precondition for driving somewhere is knowing where it is.
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
+
+
+### UTILITY VALUES ###
+
+#Travel costs
+>(baseUtilityValue USER (driveTo USER ?PLACE) -10)
+>(baseUtilityValue USER (walkTo USER ?PLACE) 0)
+
+### OTHER RULES ###
+
+
