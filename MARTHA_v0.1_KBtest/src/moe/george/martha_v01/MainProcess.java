@@ -33,7 +33,7 @@ public class MainProcess {
 	 * The path at which the init folder containing MARTHA knowledge can be
 	 * found.
 	 */
-	public final static String init_folder = "init";
+	public final static String init_folder = "shopping";
 	public final static String history_file = "history.martha";
 
 	// The context in which all assertions are made.

@@ -14,13 +14,28 @@
 #The precondition for driving somewhere is knowing where it is.
 >(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
 
+#Create concept of walkinig to a place, takes args of a person and a place
+*walkTo
+=(arity walkTo 2)
+=(argIsa walkTo 1 Person)
+=(argIsa walkTo 2 Place)
+#Walking somewhere will be you be at that place
+>(causes-PropProp (walkTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#A precondition for walking somewhere is knowing where it is.
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (walkTo USER ?PLACE)))
 
 ### UTILITY VALUES ###
 
 #Travel costs
->(baseUtilityValue USER (driveTo USER ?PLACE) -10)
->(baseUtilityValue USER (walkTo USER ?PLACE) 0)
+#>(baseUtilityValue USER (driveTo USER ?PLACE) -10)
+#>(baseUtilityValue USER (walkTo USER ?PLACE) 0)
 
 ### OTHER RULES ###
 
+#A precondition for being happy is wearing appropriate clothing.
+#>(preconditionFor-Props (wearsClothing USER ??APPROPRIATECLOTHING) (feelsEmotion USER (HighAmountFn Happiness)))
+#If the user is going outside, this means that the user would want to know the weather outside and what to wear in order to be happy.
+#>(implies (and (temperatureOfObject ?PLACE ?TEMPERATURE) (desires USER (at-UnderspecifiedLandmark USER ?PLACE)))(preconditionFor-Props (knows USER (temperatureOfObject ?PLACE ?TEMPERATURE)) (wearsClothing USER ??APPROPRIATECLOTHING)))
 
+#If the user knows that the weather at a place is sunny, he will assume it is warm.
+#>(implies (knows USER (weather ?PLACE SunnyArea)) (beliefs USER (temperatureOfObject ?PLACE Warm)))

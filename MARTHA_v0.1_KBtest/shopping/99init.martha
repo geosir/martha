@@ -17,10 +17,3 @@
 #=(baseUtilityValue USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens) 30)
 #This is a very important desire.
 #=(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
-
-#MARTHA knows that the CBGs aree cold. But they are sunny.
-=(temperatureOfObject ChicagoBotanicGardens Cold)
-=(weather ChicagoBotanicGardens SunnyArea)
-
-#The user knows that the CBGs are sunny.
-=(beliefs USER (weather ChicagoBotanicGardens SunnyArea))

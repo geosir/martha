@@ -87,7 +87,7 @@ public class Martha {
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
 	// Minimum score needed for a plan to be even considered for execution.
-	private int legitimacy_threshold = 20;
+	private int legitimacy_threshold = 35;
 
 	// An object to run MARTHA's consciousness
 	MarthaConsciousness mc;
@@ -108,10 +108,9 @@ public class Martha {
 
 	// A list of executable actions available to MARTHA
 	protected static ArrayList<String> action_set;
-	
+
 	private int max_focus_shifts = 100;
 	private int initial_focus;
-
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException,
@@ -165,7 +164,7 @@ public class Martha {
 						+ ".");
 			}
 
-			// System.out.println(line);
+			System.out.println(line);
 		}
 
 		// Close the reader to free up resources.
@@ -359,10 +358,11 @@ public class Martha {
 			/*
 			 * If the input was an assertion, assert that the user knows about
 			 * the contents of the assertion. Also assert that the user said it.
-			 * Then wonder why the user said it
+			 * Then wonder why the user said it ("so, what?").
 			 */
-			if (input.substring(0, 1).equals(">")) {
-				interpret(">(knows USER " + input.substring(1) + ")");
+			if (input.substring(0, 1).equals(">")
+					|| input.substring(0, 1).equals("=")) {
+				interpret(">(beliefs USER " + input.substring(1) + ")");
 				interpret(">(says USER " + input.substring(1) + ")");
 
 				/*
@@ -370,8 +370,13 @@ public class Martha {
 				 * TODO: can be extended for queries too, so that Martha can
 				 * discern goals from questions.
 				 */
-				interpret(">(focus " + (focus_ticker + 1) + " (why (says USER "
-						+ input.substring(1) + ")))");
+				interpret(">(focus " + (focus_ticker + 1)
+						+ " (sowhat (says USER " + input.substring(1) + ")))");
+				for(int i=1; i<4; i++)
+				{
+					interpret(">(focus " + (focus_ticker + i) + " (sowhat "+ input.substring(1) + "))");
+				}
+						
 			}
 
 			// ^ : special MARTHA escape command
@@ -500,9 +505,10 @@ public class Martha {
 	// Explore possible intentions, seeded with a single string.
 	public void explore(String s) {
 
-		//Set the initial focus count, used for focus auditing and loop prevention.
+		// Set the initial focus count, used for focus auditing and loop
+		// prevention.
 		initial_focus = focus_ticker;
-		
+
 		// A nice debug marker.
 		System.out.println("MARTHA ===EXPLORE=== " + depth);
 
@@ -555,12 +561,11 @@ public class Martha {
 		// A nice debug marker.
 		System.out.println("MARTHA ============== " + depth);
 	}
-	
+
 	/***********************
-	 * NOTE!
-	 * THE ACTUAL MARTHA SEARCH FUNCTIONS, WITH THEIR DEPENDENCIES, HAVE BEEN MOVED TO MARTHA PROCESS.
-	 * All planning is to be done through a Martha Process.
-	 * Execution and evaluation is still needed by the engine.	 * 
+	 * NOTE! THE ACTUAL MARTHA SEARCH FUNCTIONS, WITH THEIR DEPENDENCIES, HAVE
+	 * BEEN MOVED TO MARTHA PROCESS. All planning is to be done through a Martha
+	 * Process. Execution and evaluation is still needed by the engine. *
 	 ***********************/
 
 	// Method to see if a goal is persistent (should not be unasserted
@@ -662,15 +667,18 @@ public class Martha {
 							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 					Matcher m = p.matcher(action);
 
-					// Say what needs to be said.
-					System.out.println();
-					System.out.println("=================================");
-					System.out.println("MARTHA>>> " + m.group(2));
-					System.out.println("=================================");
-					System.out.println();
+					if (m.matches()) {
 
-					// Action executed completely.
-					state = 0;
+						// Say what needs to be said.
+						System.out.println();
+						System.out.println("=================================");
+						System.out.println("MARTHA>>> " + m.group(2));
+						System.out.println("=================================");
+						System.out.println();
+
+						// Action executed completely.
+						state = 0;
+					}
 
 				}
 
@@ -679,7 +687,7 @@ public class Martha {
 				 * can also handle quotations) SYNTAX: (say MARTHA <thing to be
 				 * said>)
 				 */
-				if (keywords.get(0).equals("says")) {
+				else if (keywords.get(0).equals("says")) {
 
 					// Parse the action for this Martha Function using a regular
 					// expression.
@@ -698,14 +706,28 @@ public class Martha {
 
 					if (m.matches()) {
 						// Say what needs to be said.
-						System.out.println();
-						System.out.println("=================================");
-						System.out.println("MARTHA>>> " + m.group(1));
-						System.out.println("=================================");
-						System.out.println();
+						/*
+						 * System.out.println();
+						 * System.out.println("================================="
+						 * ); System.out.println("MARTHA>>> " + m.group(1));
+						 * System
+						 * .out.println("=================================");
+						 * System.out.println();
+						 */
 
-						// Action executed completely.
-						state = 0;
+						/*
+						 * XXX: (says MARTHA ...) and (say-TMF ...) are
+						 * conflicting! says is supposed to replace say-TMF
+						 * soon, but because of the global scope of says,
+						 * "knows" preconditions in the precondition builder are
+						 * prematurely fulfilled by it. For now, says MARTHA
+						 * will just redirect to say-TMF at execution, while
+						 * say-TMF will be used for final MARTHA statements.
+						 */
+						queueExecution("(say-TMF " + m.group(1) + ")");
+
+						// Action redirected.
+						state = 2;
 					}
 				}
 				/*
@@ -764,15 +786,17 @@ public class Martha {
 					// No match, don't assert.
 					shouldassert = false;
 				}
-				
-				//DEBUG: Pause so I can read the action.
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+
+				// DEBUG: Pause so I can read the action.
+				if (shouldassert) {
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
-				
+
 			} else {
 				// no match, don't assert.
 				shouldassert = false;
@@ -782,6 +806,7 @@ public class Martha {
 			 * Should this statement be asserted; i.e., did this function
 			 * actually happen, or is it just a metafunction?
 			 */
+
 			if (shouldassert) {
 				// Assert that it has been done.
 				interpret(">" + action);
@@ -845,7 +870,7 @@ public class Martha {
 				// Add up the value of all actions in the plan
 				for (String s : a) {
 					current_value = getUtility(s) + current_value;
-					// System.out.println("ACTION("+getUtility(s)+"): "+s);
+					System.out.println("ACTION(" + getUtility(s) + "): " + s);
 				}
 
 				// If the plan is of equal or higher value of the highest value,
@@ -896,14 +921,19 @@ public class Martha {
 					for (String c : candidate) {
 						// If the key word of the action is in the MARTHA action
 						// set...
-						if (action_set.contains(getKeyWords(c).get(0)) && !areWeLost()) {
+						ArrayList<String> keywords = getKeyWords(c);
+						if (action_set.contains(keywords.get(0))
+								&& !areWeLost()) {
 							// Get the next focus tick
 							next_focus = focus_ticker + 1;
 
 							// Assert the focus statement with the next focus
 							// tick.
-							interpret(">(focus " + next_focus + " (why " + c
+							interpret(">(focus " + next_focus + " (sowhat " + c
 									+ "))");
+						} else if (keywords.get(0).equals("desires")) {
+							interpret(">" + c);
+							interpret(">(carryover " + c+")");
 						}
 					}
 
@@ -1043,11 +1073,9 @@ public class Martha {
 	public void wake() {
 		mc.setState(4);
 	}
-	
-	public boolean areWeLost()
-	{
-		if((focus_ticker - initial_focus )>max_focus_shifts)
-		{
+
+	public boolean areWeLost() {
+		if ((focus_ticker - initial_focus) > max_focus_shifts) {
 			return true;
 		}
 		return false;

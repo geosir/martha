@@ -58,33 +58,38 @@ public class MarthaConsciousness implements Runnable {
 			 * TheoryOfMind1, or go back in a previous git version.
 			 */
 
-			// Handle direct goals first...
-			martha.planForGoals();
-
-			// ...then take a look at less obvious intentions.
-			martha.explore();
-
+			if(counter%2==0)
+			{
+				// Handle direct goals first...
+				martha.planForGoals();
+			}
+			else
+			{
+				// ...then take a look at less obvious intentions.
+				martha.explore();
+			}
+			
 			/*
 			 * If we've accumulated 10 cycles (DEBUG: just 1 cycle for now)
 			 * worth of plans, Evaluate them and execute the results.
 			 */
 			if (counter % 1 == 0) {
 
+				//Evaluate the queued plans
+				martha.evaluatePlans();				
 				//Execute the queued plans.
 				martha.execute();
 
 				// DEBUG: Dump of USER/MARTHA knowledge.
-				System.out.println("USER knows:");
-				martha.interpretFromUser("?(knows USER ?WHAT)");
 				System.out.println("USER believes:");
 				martha.interpretFromUser("?(beliefs USER ?WHAT)");
-				System.out.println("MARTHA knows:");
-				martha.interpretFromUser("?(knows MARTHA ?WHAT)");
+				System.out.println("MARTHA believes:");
+				martha.interpretFromUser("?(beliefs MARTHA ?WHAT)");
 				
 				//DEBUG: Pause to allow the operator to inspect debug code. 
 				//Print dots to show time.
-				for (int i = 0; i < 5; i++) {
-					System.out.print(".");
+				for (int i = 0; i < 3; i++) {
+					//System.out.print(".");
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
