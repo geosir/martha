@@ -44,4 +44,4 @@
 >(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (beliefs MARTHA (desires ?AGENT (driveTo ?AGENT ?PLACE))) (driveTo ?AGENT ?PLACE)))
 
 >(implies (or (temperatureOfObject ?PLACE Cold) (and (placeInCity ?PLACE ?CITY) (temperatureOfObject ?CITY Cold))) (causes-PropProp (walkTo ?AGENT ?PLACE) (feelsEmotion ?AGENT (LowAmountFn ComfortLevel))))
->(implies (desires ?AGENT (walkTo ?AGENT ?PLACE)) (causes-PropProp (temperatureOfObject ?PLACE Cold) (feelsEmotion ?AGENT (LowAmountFn ComfortLevel))))
+>(implies (and (desires ?AGENT (walkTo ?AGENT ?PLACE)) (temperatureOfObject ?PLACE Cold)) (causes-PropProp (temperatureOfObject ?PLACE Cold) (feelsEmotion ?AGENT (LowAmountFn ComfortLevel))))

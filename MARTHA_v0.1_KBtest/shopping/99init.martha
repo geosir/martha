@@ -20,3 +20,4 @@
 
 
 =(temperatureOfObject CityOfChicagoIL Cold)
+=(temperatureOfObject CityOfParisFrance Hot)

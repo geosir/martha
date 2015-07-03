@@ -6,14 +6,36 @@
 =(isa ArtificialSandwiches Place)
 =(placeInCity ArtificialSandwiches CityOfChicagoIL)
 
++JimmyJohnnySandwichShop
+=(isa JimmyJohnnySandwichShop SandwichShop-FastFoodRestaurant)
+=(isa JimmyJohnnySandwichShop Place)
+=(placeInCity JimmyJohnnySandwichShop CityOfNewYorkNY)
+
++SuperbSubs
+=(isa SuperbSubs SandwichShop-FastFoodRestaurant)
+=(isa SuperbSubs Place)
+=(placeInCity SuperbSubs CityOfParisFrance)
+
 #A *specific* $5 steak sandwich. Delicious!
 +FiveDollarSteakSandwich
 =(isa FiveDollarSteakSandwich Sandwich)
 =(isa FiveDollarSteakSandwich Product)
 #The FiveDollarSteakSandwich costs $5.00
-
 =(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
 =(sells ArtificialSandwiches FiveDollarSteakSandwich)
+
++JimmyJohnnyBLT
+=(isa JimmyJohnnyBLT Sandwich)
+=(isa JimmyJohnnyBLT Product)
+=(basicPrice JimmyJohnnyBLT (Dollar-UnitedStates 3.50))
+=(sells JimmyJohnnySandwichShop JimmyJohnnyBLT)
+
++ExquisiteJambon
+=(isa ExquisiteJambon Sandwich)
+=(isa ExquisiteJambon Product)
+=(basicPrice ExquisiteJambon (Dollar-UnitedStates 8.00))
+=(sells SuperbSubs ExquisiteJambon)
+
 
 ### UTILITY VALUES ###
 >(baseUtilityValue USER (buys USER ??PRODUCT) 0)
