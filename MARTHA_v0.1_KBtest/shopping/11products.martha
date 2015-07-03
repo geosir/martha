@@ -35,5 +35,6 @@
 >(implies (buys ?AGENT ?SOMETHING) (possesses ?AGENT ?SOMETHING))
 
 
->(implies (and (beliefs ?AGENT (sells ?STORE ?PRODUCT)) (desires ?AGENT (possesses ?AGENT ?PRODUCT))) (causes-PropProp (desires ?AGENT (possesses ?AGENT ?PRODUCT)) (desires ?AGENT (at-UnderspecifiedLandmark ?AGENT ?STORE))))
+>(implies (and (beliefs ?AGENT (sells ?STORE ?PRODUCT)) (desires ?AGENT (buys ?AGENT ?PRODUCT))) (causes-PropProp (desires ?AGENT (buys ?AGENT ?PRODUCT)) (desires ?AGENT (at-UnderspecifiedLandmark ?AGENT ?STORE))))
 
+>(implies (unknownSentence (desires ?AGENT (buys ?AGENT ?PRODUCT))) (preconditionFor-Props (desires ?AGENT (buys ?AGENT ?PRODUCT)) (buys ?AGENT ?PRODUCT)))

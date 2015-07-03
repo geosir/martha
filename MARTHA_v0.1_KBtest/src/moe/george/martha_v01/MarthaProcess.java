@@ -74,7 +74,10 @@ public class MarthaProcess extends Martha {
 
 	// Minimum score needed for a plan to be even considered for execution.
 	private int legitimacy_threshold = 10;
-	
+
+	// Percentage threshold by which an action is obviously better than another.
+	// private double obviously_better_threshold = 1.2;
+
 	// The main constructor.
 	public MarthaProcess(Martha parent_martha, String context,
 			String defaultcontext, int init_depth, String target_agent)
@@ -192,9 +195,9 @@ public class MarthaProcess extends Martha {
 
 		// Set the mode for this process to a forwards search.
 		mode = "forwards";
-		
+
 		System.out.println(agent + " ===EXPLORE=== " + depth);
-		
+
 		// Some nice debug output.
 		System.out.println("FOCUS TICKER: " + focus_ticker);
 		interpretFromUser("?(focus ?WHAT ?SOMETHING)");
@@ -280,7 +283,7 @@ public class MarthaProcess extends Martha {
 		interpretFromUser("?(beliefs USER ?WHAT)");
 		System.out.println("MARTHA believes:");
 		interpretFromUser("?(beliefs MARTHA ?WHAT)");
-		
+
 		try {
 			// A nice debug marker
 			System.out.println(agent + " ============== " + depth);
@@ -325,8 +328,8 @@ public class MarthaProcess extends Martha {
 		// Query the database to find the user's desires.
 		ArrayList<String> goals = interpret(
 				"?(desires " + agent + " ?DESIRES)", assrtctx);
-		
-		System.out.println("GOALS: "+goals);
+
+		System.out.println("GOALS: " + goals);
 
 		// THE ACTUAL SEARCHING ITSELF!
 		// For each desire (which is a goal in this case), evaluate the possible
@@ -475,11 +478,21 @@ public class MarthaProcess extends Martha {
 			// So, if no actions have already happened,
 			if (trueaction.isEmpty()) {
 				// Start a new search with each of the actions.
+
 				for (String a : actions) {
 
 					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
 							a, newpath, search_depth - 1);
 					newpaths.addAll(results);
+
+					/*
+					 * LinkedHashSet<String> temp = deepClone(newpath);
+					 * temp.add("(say-TMF " + assumption + ")");
+					 * 
+					 * ArrayList<LinkedHashSet<String>> results =
+					 * backwardsSearch( a, temp, search_depth - 1);
+					 * newpaths.addAll(results);
+					 */
 				}
 			} else {
 				// Otherwise, just search using the action that DID happen.
@@ -662,7 +675,7 @@ public class MarthaProcess extends Martha {
 
 	// Add an action to the execution queue.
 	public int queueExecution(String action) {
-		System.out.println("EXEC-QUEUED("+depth+"): " + action);
+		System.out.println("EXEC-QUEUED(" + depth + "): " + action);
 		execution_queue.add(action);
 		return 0;
 	}
@@ -705,14 +718,14 @@ public class MarthaProcess extends Martha {
 		 * and (carryover ...). These are to be carried over to the hypothetical
 		 * context.
 		 */
-		ArrayList<String> ops = interpret("?(beliefs "+ target_agent + " ?FACTS)", assrtctx);
+		ArrayList<String> ops = interpret("?(beliefs " + target_agent
+				+ " ?FACTS)", assrtctx);
 		ArrayList<String> hypothetical_facts = new ArrayList<String>();
 		hypothetical_facts.addAll(ops);
-		for(String o : ops)
-		{
-			hypothetical_facts.add("(beliefs "+target_agent+" "+o+")");
+		for (String o : ops) {
+			hypothetical_facts.add("(beliefs " + target_agent + " " + o + ")");
 		}
-		
+
 		hypothetical_facts.addAll(interpret("?(carryover ?CARRYOVER)"));
 		System.out.println("TT: " + target_agent);
 
@@ -752,7 +765,7 @@ public class MarthaProcess extends Martha {
 		while (action != null) {
 			// Let the user know that action is being executed
 			// Silenced.
-			// System.out.println("Execute " + action);
+			System.out.println("Execute " + action);
 
 			ArrayList<String> keywords = getKeyWords(action);
 
@@ -792,8 +805,8 @@ public class MarthaProcess extends Martha {
 					state = 0;
 				}
 				/*
-				 * "sowhat" queries are carried over with the why wrapper removed
-				 * and with a focus wrapper added.
+				 * "sowhat" queries are carried over with the why wrapper
+				 * removed and with a focus wrapper added.
 				 */
 				else if (keywords.get(0).equals("sowhat")) {
 					new_focus = focus_ticker + 1;
@@ -865,7 +878,7 @@ public class MarthaProcess extends Martha {
 				// Add up the value of all actions in the plan
 				for (String s : a) {
 					current_value = getUtility(s) + current_value;
-					System.out.println("ACTION("+getUtility(s)+"): "+s);
+					System.out.println("ACTION(" + getUtility(s) + "): " + s);
 				}
 
 				// If the plan is of equal or higher value of the highest value,
@@ -899,12 +912,9 @@ public class MarthaProcess extends Martha {
 					 * appropriate facts to the CHILD process.
 					 */
 					System.out.println("Q+EXEC: " + c);
-					if(mode.equals("backwards"))
-					{
+					if (mode.equals("backwards")) {
 						parent.queueExecution(c);
-					}
-					else
-					{
+					} else {
 						queueExecution(c);
 					}
 

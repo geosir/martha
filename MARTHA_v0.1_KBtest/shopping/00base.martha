@@ -24,6 +24,7 @@
 #Syntax: (say-TMF <thing to say>)
 #DEPRECATED. USE (says MARTHA <thing to say>) instead.
 *say-TMF
+=(isa say-TMF MarthaAction)
 =(arity say-TMF 1)
 =(argIsa say-TMF 1  Thing)
 #Saying something causes the user to know what was said.
@@ -120,6 +121,7 @@
 
 >(baseUtilityValue USER (sowhat ?SOMETHING) 10)
 >(baseUtilityValue USER (desires USER ?SOMETHING) 10)
+>(implies (unknownSentence ?SOMETHING) (baseUtilityValue USER (query-TMF ?SOMETHING) 1000))
 
 ### OTHER RULES ###
 
@@ -132,4 +134,7 @@
 
 #If both MARTHA and the user know something, it's because they talked. Thus, the user knows that martha knows something.
 #>(implies (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))) (knows USER (knows MARTHA (knows USER ?THING))))
+
+#If MARTHA doesn't know if a user desires something, then a precondition is to ask.
+>(implies (unknownSentence (desires ?AGENT ?SOMETHING)) (causes-PropProp (query-TMF (desires ?AGENT ?SOMETHING)) (desires ?AGENT ?SOMETHING)))
 

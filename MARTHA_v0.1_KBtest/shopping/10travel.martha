@@ -39,3 +39,6 @@
 
 #If the user knows that the weather at a place is sunny, he will assume it is warm.
 #>(implies (knows USER (weather ?PLACE SunnyArea)) (beliefs USER (temperatureOfObject ?PLACE Warm)))
+
+>(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (query-TMF (desires ?AGENT (walkTo ?AGENT ?PLACE))) (walkTo ?AGENT ?PLACE)))
+>(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (query-TMF (desires ?AGENT (driveTo ?AGENT ?PLACE))) (driveTo ?AGENT ?PLACE)))

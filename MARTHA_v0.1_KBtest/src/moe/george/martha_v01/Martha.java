@@ -164,7 +164,7 @@ public class Martha {
 						+ ".");
 			}
 
-			System.out.println(line);
+			//System.out.println(line);
 		}
 
 		// Close the reader to free up resources.
@@ -370,8 +370,10 @@ public class Martha {
 				 * TODO: can be extended for queries too, so that Martha can
 				 * discern goals from questions.
 				 */
-				interpret(">(focus " + (focus_ticker + 1)
-						+ " (sowhat (says USER " + input.substring(1) + ")))");
+				//interpret(">(focus " + (focus_ticker + 1)
+				//		+ " (sowhat (says USER " + input.substring(1) + ")))");
+				
+				//Assert the sowhat for the action itself forward a bit so that MARTHA can think about it for a while.
 				for(int i=1; i<4; i++)
 				{
 					interpret(">(focus " + (focus_ticker + i) + " (sowhat "+ input.substring(1) + "))");
@@ -750,11 +752,13 @@ public class Martha {
 						System.out.println("=================================");
 						System.out.println();
 
-						purgeQueue(execution_queue); // Purge the queue to halt
+						//Don't need to do this, the baseUtilityValue for query is already high enough to block any other plans.
+						//purgeQueue(execution_queue); // Purge the queue to halt
 														// execution and let the
 														// user respond to the
 														// question.
 						state = 1; // Pending user input state.
+						//shouldassert=false;
 					}
 				}
 
@@ -955,9 +959,9 @@ public class Martha {
 	}
 
 	// Clear all the contents of a queue.
-	private void purgeQueue(Queue<?> q) {
+	/*private void purgeQueue(Queue<?> q) {
 		q.clear();
-	}
+	}*/
 
 	// Get the base utility value of an action or condition, as stated in the
 	// Cyc KB.
