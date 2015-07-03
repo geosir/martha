@@ -71,6 +71,9 @@ public class MarthaConsciousness implements Runnable {
 				martha.evaluatePlans();
 				// Execute the queued plans.
 				martha.execute();
+				
+				//Cleanup old foci
+				martha.cleanup();
 
 				// DEBUG: Dump of USER/MARTHA knowledge.
 				System.out.println("USER believes:");

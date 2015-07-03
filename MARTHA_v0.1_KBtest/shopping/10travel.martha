@@ -40,5 +40,8 @@
 #If the user knows that the weather at a place is sunny, he will assume it is warm.
 #>(implies (knows USER (weather ?PLACE SunnyArea)) (beliefs USER (temperatureOfObject ?PLACE Warm)))
 
->(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (query-TMF (desires ?AGENT (walkTo ?AGENT ?PLACE))) (walkTo ?AGENT ?PLACE)))
->(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (query-TMF (desires ?AGENT (driveTo ?AGENT ?PLACE))) (driveTo ?AGENT ?PLACE)))
+>(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (beliefs MARTHA (desires ?AGENT (walkTo ?AGENT ?PLACE))) (walkTo ?AGENT ?PLACE)))
+>(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (beliefs MARTHA (desires ?AGENT (driveTo ?AGENT ?PLACE))) (driveTo ?AGENT ?PLACE)))
+
+>(implies (or (temperatureOfObject ?PLACE Cold) (and (placeInCity ?PLACE ?CITY) (temperatureOfObject ?CITY Cold))) (causes-PropProp (walkTo ?AGENT ?PLACE) (feelsEmotion ?AGENT (LowAmountFn ComfortLevel))))
+>(implies (desires ?AGENT (walkTo ?AGENT ?PLACE)) (causes-PropProp (temperatureOfObject ?PLACE Cold) (feelsEmotion ?AGENT (LowAmountFn ComfortLevel))))

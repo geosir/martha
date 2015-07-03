@@ -114,14 +114,18 @@
 #>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
 >(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 15))
 >(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) 5))
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (says MARTHA ?THING) 15))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (says MARTHA ?THING) 5))
 
 #Utility values of DESIRES
 >(implies (and (desires USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER ?SOMETHING 30))
 >(implies (and (desires USER ?SOMETHING) ?SOMETHING (unknownSentence (goalIsPersistent ?SOMETHING True))) (baseUtilityValue USER ?SOMETHING 5))
 
 >(baseUtilityValue USER (sowhat ?SOMETHING) 10)
->(baseUtilityValue USER (desires USER ?SOMETHING) 10)
->(implies (unknownSentence ?SOMETHING) (baseUtilityValue USER (query-TMF ?SOMETHING) 1000))
+>(implies (unknownSentence ?SOMETHING) (baseUtilityValue USER (desires USER ?SOMETHING) 20))
+#>(implies (unknownSentence ?SOMETHING) (baseUtilityValue USER (query-TMF ?SOMETHING) 1000))
+>(implies (unknownSentence (query-TMF ?SOMETHING)) (baseUtilityValue USER (query-TMF ?SOMETHING) 1000))
+>(implies (query-TMF ?SOMETHING) (baseUtilityValue USER (query-TMF ?SOMETHING) 20))
 
 ### OTHER RULES ###
 
@@ -136,5 +140,6 @@
 #>(implies (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))) (knows USER (knows MARTHA (knows USER ?THING))))
 
 #If MARTHA doesn't know if a user desires something, then a precondition is to ask.
->(implies (unknownSentence (desires ?AGENT ?SOMETHING)) (causes-PropProp (query-TMF (desires ?AGENT ?SOMETHING)) (desires ?AGENT ?SOMETHING)))
+>(implies (unknownSentence (knows MARTHA (desires ?AGENT ?SOMETHING))) (causes-PropProp (query-TMF (desires ?AGENT ?SOMETHING)) (beliefs MARTHA (desires ?AGENT ?SOMETHING))))
 
+>(causes-PropProp (sowhat (desires ?AGENT ?SOMETHING)) (sowhat ?SOMETHING))

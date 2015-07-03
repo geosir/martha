@@ -87,7 +87,7 @@ public class Martha {
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
 	// Minimum score needed for a plan to be even considered for execution.
-	private int legitimacy_threshold = 35;
+	private int legitimacy_threshold = 41;
 
 	// An object to run MARTHA's consciousness
 	MarthaConsciousness mc;
@@ -113,24 +113,20 @@ public class Martha {
 	private int initial_focus;
 
 	// Constructor for the MARTHA class
-	public Martha(String context) throws SessionConfigurationException,
-			SessionCommunicationException, SessionInitializationException,
-			CreateException, KBTypeException {
+	public Martha(String context) throws SessionConfigurationException, SessionCommunicationException,
+			SessionInitializationException, CreateException, KBTypeException {
 
 		// Let everyone know that a new MARTHA is being instantiated
 		System.out.println("Creating new MARTHA Engine...");
 
 		// Connect to the Cyc server
-		System.out.println("Acquiring a cyc server... "
-				+ CycSessionManager.getCurrentSession().getServerInfo()
-						.getCycServer());
+		System.out.println(
+				"Acquiring a cyc server... " + CycSessionManager.getCurrentSession().getServerInfo().getCycServer());
 
 		// Log into the Cyc server as "TheUser"
 		System.out.print("Setting cyc user... ");
-		CycSessionManager.getCurrentSession().getOptions()
-				.setCyclistName("TheUser");
-		System.out.println(CycSessionManager.getCurrentSession().getOptions()
-				.getCyclistName());
+		CycSessionManager.getCurrentSession().getOptions().setCyclistName("TheUser");
+		System.out.println(CycSessionManager.getCurrentSession().getOptions().getCyclistName());
 
 		// Set the assertion context to the one specified by the constructor
 		// call
@@ -148,8 +144,12 @@ public class Martha {
 		initpath = init_file_path; // Set file path to one specified
 		Charset charset = Charset.forName("US-ASCII"); // Specify the charset
 		// which the file uses
-		BufferedReader reader = Files.newBufferedReader(Paths.get(initpath),
-				charset); // Make a reader for the file
+		BufferedReader reader = Files.newBufferedReader(Paths.get(initpath), charset); // Make
+																						// a
+																						// reader
+																						// for
+																						// the
+																						// file
 
 		// Feed the contents of the file line by line into the interpreter.
 		String line = null;
@@ -160,11 +160,10 @@ public class Martha {
 													// catch error, at the same
 													// time!
 			{
-				System.out.println("initFromFile: Error at line " + linenumber
-						+ ".");
+				System.out.println("initFromFile: Error at line " + linenumber + ".");
 			}
 
-			//System.out.println(line);
+			// System.out.println(line);
 		}
 
 		// Close the reader to free up resources.
@@ -219,8 +218,7 @@ public class Martha {
 				// X : unassert assertion
 				case "X":
 					ops = line.substring(1);
-					Assertion deleteassert = AssertionImpl.findOrCreate(ops,
-							context);
+					Assertion deleteassert = AssertionImpl.findOrCreate(ops, context);
 					deleteassert.delete();
 					System.out.println("DELETED");
 					break;
@@ -262,8 +260,7 @@ public class Martha {
 						// Get the result and put in the results ArrayList.
 						while (queryResults.next()) {
 							for (Variable v : queryVars) {
-								String result = queryResults.getKBObject(v)
-										.toString();
+								String result = queryResults.getKBObject(v).toString();
 								results.add(result);
 								// System.out.println(result);
 							}
@@ -299,8 +296,7 @@ public class Martha {
 						changeContext(defaultctx);
 					} else {
 						if (line.contains("?")) {
-							changeContext(line.substring(1).replace("?",
-									defaultctx));
+							changeContext(line.substring(1).replace("?", defaultctx));
 						} else {
 							changeContext(line.substring(1));
 						}
@@ -314,8 +310,7 @@ public class Martha {
 
 				// UNLESS we are NOT to log it into the history...
 				if (!ignore) {
-					String[] new_entry = { line.substring(1),
-							line.substring(0, 1) };
+					String[] new_entry = { line.substring(1), line.substring(0, 1) };
 					logbook.add(new_entry); // Add the interpret prompt into the
 											// history log.
 				}
@@ -324,8 +319,7 @@ public class Martha {
 								// die.
 
 			// e.printStackTrace();
-			System.out
-					.println("Warning: Could not interpret \"" + line + "\".");
+			System.out.println("Warning: Could not interpret \"" + line + "\".");
 			results.add("ERROR");
 			return (results);
 		}
@@ -360,9 +354,10 @@ public class Martha {
 			 * the contents of the assertion. Also assert that the user said it.
 			 * Then wonder why the user said it ("so, what?").
 			 */
-			if (input.substring(0, 1).equals(">")
-					|| input.substring(0, 1).equals("=")) {
+			if (input.substring(0, 1).equals(">") || input.substring(0, 1).equals("=")) {
 				interpret(">(beliefs USER " + input.substring(1) + ")");
+				interpret(">(beliefs USER (beliefs MARTHA " + input.substring(1) + "))");
+				interpret(">(beliefs MARTHA " + input.substring(1) + ")");
 				interpret(">(says USER " + input.substring(1) + ")");
 
 				/*
@@ -370,15 +365,15 @@ public class Martha {
 				 * TODO: can be extended for queries too, so that Martha can
 				 * discern goals from questions.
 				 */
-				//interpret(">(focus " + (focus_ticker + 1)
-				//		+ " (sowhat (says USER " + input.substring(1) + ")))");
-				
-				//Assert the sowhat for the action itself forward a bit so that MARTHA can think about it for a while.
-				for(int i=1; i<4; i++)
-				{
-					interpret(">(focus " + (focus_ticker + i) + " (sowhat "+ input.substring(1) + "))");
+				// interpret(">(focus " + (focus_ticker + 1)
+				// + " (sowhat (says USER " + input.substring(1) + ")))");
+
+				// Assert the sowhat for the action itself forward a bit so that
+				// MARTHA can think about it for a while.
+				for (int i = 1; i < 6; i++) {
+					interpret(">(focus " + (focus_ticker + i) + " (sowhat " + input.substring(1) + "))");
 				}
-						
+
 			}
 
 			// ^ : special MARTHA escape command
@@ -392,8 +387,7 @@ public class Martha {
 					// If there is too much info, the threshold is too low.
 					// Increase the legitimacy threshold.
 					legitimacy_threshold += 5;
-					System.out
-							.println("New threshold: " + legitimacy_threshold);
+					System.out.println("New threshold: " + legitimacy_threshold);
 					break;
 
 				// toolittle : Use if Martha is giving too little information.
@@ -402,8 +396,7 @@ public class Martha {
 					// If there is too little info, the threshold is too high.
 					// Decrease the legitimacy threshold.
 					legitimacy_threshold -= 5;
-					System.out
-							.println("New threshold: " + legitimacy_threshold);
+					System.out.println("New threshold: " + legitimacy_threshold);
 					break;
 				default:
 				}
@@ -434,8 +427,9 @@ public class Martha {
 	// This is an abstraction of a query that returns the importance of a goal,
 	// as specified in the Cyc KB.
 	public int getGoalImportance(String goal) {
-		ArrayList<String> importance = interpret("?(goalImportance USER "
-				+ goal + " ?IMPORTANCE)"); // Get importance values
+		ArrayList<String> importance = interpret("?(goalImportance USER " + goal + " ?IMPORTANCE)"); // Get
+																										// importance
+																										// values
 
 		// Parse the importance value string into a quantity.
 		int level = 1;
@@ -485,8 +479,7 @@ public class Martha {
 			 * is one lower to differentiate between the Martha Process and the
 			 * Martha Engine.
 			 */
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx,
-					defaultctx, depth - 1, "MARTHA");
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth - 1, "MARTHA");
 
 			// Use the Martha Process to plan
 			martha_p.explore();
@@ -501,7 +494,7 @@ public class Martha {
 		 * possibilities to be evaluated by the Martha Engine. We evalute those
 		 * plans now.
 		 */
-		evaluatePlans();
+		// evaluatePlans();
 	}
 
 	// Explore possible intentions, seeded with a single string.
@@ -522,8 +515,7 @@ public class Martha {
 			 * preserved. The depth is one lower to differentiate between the
 			 * Martha Process and the Martha Engine.
 			 */
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx,
-					defaultctx, depth - 1, "MARTHA");
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth - 1, "MARTHA");
 
 			// Explore the string s within the Martha Process.
 			martha_p.explore(s);
@@ -550,8 +542,7 @@ public class Martha {
 		try {
 			// Spawn a new Martha Process to take care of the planning
 			// algorithm.
-			MarthaProcess martha_p = new MarthaProcess(this, assrtctx,
-					defaultctx, depth - 1, "MARTHA");
+			MarthaProcess martha_p = new MarthaProcess(this, assrtctx, defaultctx, depth - 1, "MARTHA");
 
 			// Run planForGoals in the Martha Process.
 			martha_p.planForGoals();
@@ -646,6 +637,7 @@ public class Martha {
 
 			// Some nice debug output.
 			System.out.println("ACTION(" + getUtility(action) + "): " + action);
+			System.out.println("MARTHA EXECUTE: " + action);
 
 			// Boolean to store whether or not the action is to be asserted.
 			boolean shouldassert = true;
@@ -665,8 +657,7 @@ public class Martha {
 
 					// Parse the action for this Martha Function using a regular
 					// expression.
-					Pattern p = Pattern
-							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
+					Pattern p = Pattern.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 					Matcher m = p.matcher(action);
 
 					if (m.matches()) {
@@ -693,27 +684,26 @@ public class Martha {
 
 					// Parse the action for this Martha Function using a regular
 					// expression.
-					Pattern p = Pattern
-							.compile("\\(says MARTHA ([\\(\\)\\w\\s]+)\\)");
+					Pattern p = Pattern.compile("\\(says MARTHA ([-\\(\\)\\w\\s]+)\\)");
 					Matcher m = p.matcher(action);
 
 					// If this particular call to says uses quotation marks, use
 					// this regex instead.
 					if (!m.matches()) {
 						// Regular expression to handle quotation marks.
-						p = Pattern
-								.compile("\\(says MARTHA \\\"([\\(\\)\\w\\s.,!?;:]+)\\\"\\)");
+						p = Pattern.compile("\\(says MARTHA \\\"([-\\(\\)\\w\\s.,!?;:]+)\\\"\\)");
 						m = p.matcher(action);
 					}
 
 					if (m.matches()) {
 						// Say what needs to be said.
+
 						/*
-						 * System.out.println();
-						 * System.out.println("================================="
-						 * ); System.out.println("MARTHA>>> " + m.group(1));
-						 * System
-						 * .out.println("=================================");
+						 * System.out.println(); System.out.println(
+						 * "=================================");
+						 * System.out.println("MARTHA>>> " + m.group(1));
+						 * System.out.println(
+						 * "=================================");
 						 * System.out.println();
 						 */
 
@@ -740,8 +730,7 @@ public class Martha {
 
 					// Parse the action for this Martha Function using a regular
 					// expression.
-					Pattern p = Pattern
-							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
+					Pattern p = Pattern.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 					Matcher m = p.matcher(action);
 
 					if (m.matches()) {
@@ -752,13 +741,15 @@ public class Martha {
 						System.out.println("=================================");
 						System.out.println();
 
-						//Don't need to do this, the baseUtilityValue for query is already high enough to block any other plans.
-						//purgeQueue(execution_queue); // Purge the queue to halt
-														// execution and let the
-														// user respond to the
-														// question.
+						// Don't need to do this, the baseUtilityValue for query
+						// is already high enough to block any other plans.
+						// purgeQueue(execution_queue); // Purge the queue to
+						// halt
+						// execution and let the
+						// user respond to the
+						// question.
 						state = 1; // Pending user input state.
-						//shouldassert=false;
+						// shouldassert=false;
 					}
 				}
 
@@ -771,16 +762,14 @@ public class Martha {
 
 					// Parse the action for this Martha Function using a regular
 					// expression.
-					Pattern p = Pattern
-							.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
+					Pattern p = Pattern.compile("\\(([-.\\w]+)\\s*(\\([\\w\\s-.\\(\\)]+\\))\\)");
 					Matcher m = p.matcher(action);
 
 					if (m.matches()) {
 						// Ask the user what needs to be asked.
 						System.out.println();
 						System.out.println("=================================");
-						System.out.println("MARTHA>>> Hey! " + m.group(2)
-								+ " is not true!");
+						System.out.println("MARTHA>>> Hey! " + m.group(2) + " is not true!");
 						System.out.println("=================================");
 						System.out.println();
 
@@ -816,8 +805,7 @@ public class Martha {
 				interpret(">" + action);
 
 				// Assert the execution time of this action as NOW.
-				interpret(">(exactAssertTime " + action
-						+ " (IndexicalReferentFn Now-Indexical))");
+				interpret(">(exactAssertTime " + action + " (IndexicalReferentFn Now-Indexical))");
 			}
 
 			// Get the next action
@@ -853,9 +841,19 @@ public class Martha {
 			// Current premise is to select series of actions
 			// With highest sum value.
 
+			System.out.println("============MARTHA EVALUATION============");
+
 			// Instantiate some variables
 			LinkedHashSet<String> candidate = a;
 			float highest_value = 0;
+
+			/*
+			 * Create a temporary indicator to see if the focus ticker has
+			 * incremented. this is used with the for-loop below so that it's
+			 * just incremented once; all focus statements produced here are on
+			 * the same level.
+			 */
+			int next_focus = focus_ticker;
 
 			while (a != null) {
 
@@ -888,6 +886,30 @@ public class Martha {
 				if (current_value != 0 || true) {
 					System.out.println("<" + current_value + "> " + a);
 				}
+
+				if (current_value < legitimacy_threshold) {
+					/*
+					 * For each item in the candidate, create a focus statement
+					 * to explore if it refers to an valid MARTHA action.
+					 */
+					for (String c : a) {
+						// If the key word of the action is in the MARTHA action
+						// set...
+						ArrayList<String> keywords = getKeyWords(c);
+						if (action_set.contains(keywords.get(0)) && !areWeLost()) {
+							// Get the next focus tick
+							next_focus = focus_ticker + 1;
+
+							// Assert the focus statement with the next focus
+							// tick.
+							interpret(">(focus " + next_focus + " (sowhat " + c + "))");
+						} else if (keywords.get(0).equals("desires")) {
+							interpret(">" + c);
+							interpret(">(carryover " + c + ")");
+						}
+					}
+				}
+
 				a = evaluation_queue.poll();
 			}
 
@@ -905,52 +927,36 @@ public class Martha {
 			// If the legitimacy threshold has not been met...
 			else {
 				// Some neat debug output.
-				System.out.println("THRESHOLD UNMET: " + candidate + " "
-						+ highest_value);
-
-				/*
-				 * Create a temporary indicator to see if the focus ticker has
-				 * incremented. this is used with the for-loop below so that
-				 * it's just incremented once; all focus statements produced
-				 * here are on the same level.
-				 */
-				int next_focus = focus_ticker;
+				System.out.println("THRESHOLD UNMET: " + candidate + " " + highest_value);
 
 				// If there is a candidate at all...
-				if (candidate != null) {
-					/*
-					 * For each item in the candidate, create a focus statement
-					 * to explore if it refers to an valid MARTHA action.
-					 */
-					for (String c : candidate) {
-						// If the key word of the action is in the MARTHA action
-						// set...
-						ArrayList<String> keywords = getKeyWords(c);
-						if (action_set.contains(keywords.get(0))
-								&& !areWeLost()) {
-							// Get the next focus tick
-							next_focus = focus_ticker + 1;
-
-							// Assert the focus statement with the next focus
-							// tick.
-							interpret(">(focus " + next_focus + " (sowhat " + c
-									+ "))");
-						} else if (keywords.get(0).equals("desires")) {
-							interpret(">" + c);
-							interpret(">(carryover " + c+")");
-						}
-					}
-
-					/*
-					 * If the focus ticker has changed, this means there are
-					 * valid focus statements. Go ahead and explore these.
-					 */
-					if (focus_ticker != next_focus) {
-						focus_ticker = next_focus;
-						explore();
-					}
-				}
+				/*
+				 * if For each item in the candidate, create a focus statement
+				 * to explore if it refers to an valid MARTHA action. for
+				 * (String c : candidate) { // If the key word of the action is
+				 * in the MARTHA action // set... ArrayList<String> keywords =
+				 * getKeyWords(c); if (action_set.contains(keywords.get(0)) &&
+				 * !areWeLost()) { // Get the next focus tick next_focus =
+				 * focus_ticker + 1;
+				 * 
+				 * // Assert the focus statement with the next focus // tick.
+				 * interpret(">(focus " + next_focus + " (sowhat " + c + "))");
+				 * } else if (keywords.get(0).equals("desires")) { interpret(">"
+				 * + c); interpret(">(carryover " + c + ")"); } }
+				 * 
+				 * 
+				 * If the focus ticker has changed, this means there are valid
+				 * focus statements. Go ahead and explore these.
+				 * 
+				 * }
+				 */
 			}
+
+			if (focus_ticker != next_focus) {
+				focus_ticker = next_focus;
+				explore();
+			}
+
 		} catch (Exception e) {
 			// Catch errors and print a report.
 			e.printStackTrace();
@@ -959,17 +965,16 @@ public class Martha {
 	}
 
 	// Clear all the contents of a queue.
-	/*private void purgeQueue(Queue<?> q) {
-		q.clear();
-	}*/
+	/*
+	 * private void purgeQueue(Queue<?> q) { q.clear(); }
+	 */
 
 	// Get the base utility value of an action or condition, as stated in the
 	// Cyc KB.
 	public Float getBaseUtility(String state) {
 		try {
 			// Query the base utility value from the Cyc KB.
-			ArrayList<String> utility_value = interpret("?(baseUtilityValue USER "
-					+ state + " ?VALUE)");
+			ArrayList<String> utility_value = interpret("?(baseUtilityValue USER " + state + " ?VALUE)");
 
 			// Return the most recent result.
 			return (new Float(utility_value.get(utility_value.size() - 1)));
@@ -987,18 +992,14 @@ public class Martha {
 		try {
 
 			// Get the scheduled time for an action
-			ArrayList<String> exactasserttime = interpret("?(exactAssertTime "
-					+ state + " ?VALUE)");
+			ArrayList<String> exactasserttime = interpret("?(exactAssertTime " + state + " ?VALUE)");
 
 			// If the scheduled time exists...
-			if (!exactasserttime.isEmpty()
-					&& !exactasserttime.contains("ERROR")) {
+			if (!exactasserttime.isEmpty() && !exactasserttime.contains("ERROR")) {
 
 				// Parse the scheduled time and get the current time
-				SimpleDateFormat sdf = new SimpleDateFormat(
-						"EEE MMM dd HH:mm:ss z yyyy");
-				Date event = sdf.parse(exactasserttime.get(exactasserttime
-						.size() - 1));
+				SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+				Date event = sdf.parse(exactasserttime.get(exactasserttime.size() - 1));
 				Date now = new Date();
 
 				Float yield = 1f;
@@ -1009,13 +1010,11 @@ public class Martha {
 				if (timeuntil > 0) {
 					// Sigmoid function if event is in the future (yield
 					// increases as event approaches)
-					yield = (float) (1 / (1 + Math.pow(2.71828,
-							(timeuntil - 45) / 3)));
+					yield = (float) (1 / (1 + Math.pow(2.71828, (timeuntil - 45) / 3)));
 				} else {
 					// Sigmoid function if event is in the past (yield increases
 					// as event recedes)
-					yield = (float) (1 / (1 + Math.pow(2.71828,
-							(timeuntil + 45) / 5)));
+					yield = (float) (1 / (1 + Math.pow(2.71828, (timeuntil + 45) / 5)));
 				}
 
 				return yield;
@@ -1051,8 +1050,7 @@ public class Martha {
 			ContextImpl.findOrCreate(context);
 			assrtctx = context;
 		} catch (Exception e) {
-			System.out.println("ERROR: Could not change context to " + context
-					+ ".");
+			System.out.println("ERROR: Could not change context to " + context + ".");
 		}
 
 	}
@@ -1083,5 +1081,13 @@ public class Martha {
 			return true;
 		}
 		return false;
+	}
+
+	public void cleanup() {
+		for (int i = focus_ticker; i > 0; i--) {
+			for (String s : interpret("?(focus " + (i - 1) + "?SOMETHING)")) {
+				interpret("X(focus " + (i - 1) + " " + s + ")");
+			}
+		}
 	}
 }

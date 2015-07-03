@@ -5,6 +5,9 @@
 #This action is persistent and informs all actions
 =(goalIsPersistent (desires USER (feelsEmotion USER (HighAmountFn Happiness))) True)
 
+### UTILITY VALUES ###
+>(baseUtilityValue USER (feelsEmotion USER (LowAmountFn ComfortLevel)) -100)
+
 ### OTHER RULES ###
 
 #Correcting false beliefs! Theory of Mind

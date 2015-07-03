@@ -79,11 +79,9 @@ public class MarthaProcess extends Martha {
 	// private double obviously_better_threshold = 1.2;
 
 	// The main constructor.
-	public MarthaProcess(Martha parent_martha, String context,
-			String defaultcontext, int init_depth, String target_agent)
-			throws SessionConfigurationException,
-			SessionCommunicationException, SessionInitializationException,
-			CreateException, KBTypeException {
+	public MarthaProcess(Martha parent_martha, String context, String defaultcontext, int init_depth,
+			String target_agent) throws SessionConfigurationException, SessionCommunicationException,
+					SessionInitializationException, CreateException, KBTypeException {
 
 		// Superclass constructor (Martha Engine)
 		super(context);
@@ -101,16 +99,13 @@ public class MarthaProcess extends Martha {
 		System.out.println("Creating new MARTHA Process...");
 
 		// Connect to the Cyc server
-		System.out.println("Acquiring a cyc server... "
-				+ CycSessionManager.getCurrentSession().getServerInfo()
-						.getCycServer());
+		System.out.println(
+				"Acquiring a cyc server... " + CycSessionManager.getCurrentSession().getServerInfo().getCycServer());
 
 		// Log into the Cyc server as "TheUser"
 		System.out.print("Setting cyc user... ");
-		CycSessionManager.getCurrentSession().getOptions()
-				.setCyclistName("TheUser");
-		System.out.println(CycSessionManager.getCurrentSession().getOptions()
-				.getCyclistName());
+		CycSessionManager.getCurrentSession().getOptions().setCyclistName("TheUser");
+		System.out.println(CycSessionManager.getCurrentSession().getOptions().getCyclistName());
 
 		/*
 		 * Set the assertion context to the one specified by the constructor
@@ -239,8 +234,7 @@ public class MarthaProcess extends Martha {
 				 * sandboxed for things done here will not contaminate the
 				 * higher knowledge base.
 				 */
-				MarthaProcess martha_p = new MarthaProcess(this, hypothetical,
-						defaultctx, depth - 1, next_agent);
+				MarthaProcess martha_p = new MarthaProcess(this, hypothetical, defaultctx, depth - 1, next_agent);
 
 				// Recursively explore possbilities in the next layer down.
 				martha_p.explore();
@@ -303,8 +297,7 @@ public class MarthaProcess extends Martha {
 
 				// Create a MarthaProcess in this hypothetical context to run
 				// the simulations.
-				MarthaProcess martha_p = new MarthaProcess(this, hypothetical,
-						defaultctx, depth - 1, next_agent);
+				MarthaProcess martha_p = new MarthaProcess(this, hypothetical, defaultctx, depth - 1, next_agent);
 
 				/*
 				 * Recursively run goal planning simulations. Placing this here
@@ -326,8 +319,7 @@ public class MarthaProcess extends Martha {
 
 		//
 		// Query the database to find the user's desires.
-		ArrayList<String> goals = interpret(
-				"?(desires " + agent + " ?DESIRES)", assrtctx);
+		ArrayList<String> goals = interpret("?(desires " + agent + " ?DESIRES)", assrtctx);
 
 		System.out.println("GOALS: " + goals);
 
@@ -338,8 +330,7 @@ public class MarthaProcess extends Martha {
 
 			// An ArrayList to store paths to the goals found by the backwards
 			// search.
-			ArrayList<LinkedHashSet<String>> paths = backwardsSearch(g,
-					new LinkedHashSet<String>(), 0);
+			ArrayList<LinkedHashSet<String>> paths = backwardsSearch(g, new LinkedHashSet<String>(), 0);
 
 			// Unless the path is bad, queue each found path for evaluation.
 			for (LinkedHashSet<String> p : paths) {
@@ -361,8 +352,7 @@ public class MarthaProcess extends Martha {
 	// Generate feed facts for initial actions.
 	public String generate() {
 		String[] feed = { "ChicagoBotanicGardens", "FiveDollarSteakSandwich" };
-		return (generate("(?PRED " + feed[new Random().nextInt(feed.length)]
-				+ " ?FACT)"));
+		return (generate("(?PRED " + feed[new Random().nextInt(feed.length)] + " ?FACT)"));
 	}
 
 	public String generate(String seed) {
@@ -404,8 +394,7 @@ public class MarthaProcess extends Martha {
 
 	// VERY IMPORTANT: This is the recursive backwards search algorithm. It
 	// recursively looks for dependenceies for actions and goals.
-	public ArrayList<LinkedHashSet<String>> backwardsSearch(String goal,
-			LinkedHashSet<String> path, int search_depth) {
+	public ArrayList<LinkedHashSet<String>> backwardsSearch(String goal, LinkedHashSet<String> path, int search_depth) {
 
 		System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
 
@@ -440,8 +429,7 @@ public class MarthaProcess extends Martha {
 
 					// Do a backwards search to find actions to fulfill
 					// those preconditions.
-					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
-							p, newpath, search_depth - 1);
+					ArrayList<LinkedHashSet<String>> results = backwardsSearch(p, newpath, search_depth - 1);
 
 					// If we've reached a root on a precondition, we've reach an
 					// unfulfillable precondition.
@@ -481,8 +469,7 @@ public class MarthaProcess extends Martha {
 
 				for (String a : actions) {
 
-					ArrayList<LinkedHashSet<String>> results = backwardsSearch(
-							a, newpath, search_depth - 1);
+					ArrayList<LinkedHashSet<String>> results = backwardsSearch(a, newpath, search_depth - 1);
 					newpaths.addAll(results);
 
 					/*
@@ -496,8 +483,7 @@ public class MarthaProcess extends Martha {
 				}
 			} else {
 				// Otherwise, just search using the action that DID happen.
-				ArrayList<LinkedHashSet<String>> results = backwardsSearch(
-						trueaction, newpath, search_depth - 1);
+				ArrayList<LinkedHashSet<String>> results = backwardsSearch(trueaction, newpath, search_depth - 1);
 				newpaths.addAll(results);
 			}
 
@@ -519,7 +505,8 @@ public class MarthaProcess extends Martha {
 			if (!preconditions.isEmpty()) {
 				newpath.add("IMPOSSIBLE"); // Mark this line of search as
 											// impossible.
-				// System.out.println(">>>>>> IMPOSSIBLE - REACHED MAX DEPTH <<<<<<");
+				// System.out.println(">>>>>> IMPOSSIBLE - REACHED MAX DEPTH
+				// <<<<<<");
 				newpaths.add(newpath);
 			}
 		}
@@ -531,8 +518,7 @@ public class MarthaProcess extends Martha {
 
 	// Forwards search algorithm. Given a goal, this looks for what actions can
 	// stem from it into the future.
-	public void forwardsSearch(String goal, LinkedHashSet<String> path,
-			int search_depth) {
+	public void forwardsSearch(String goal, LinkedHashSet<String> path, int search_depth) {
 		System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
@@ -584,8 +570,7 @@ public class MarthaProcess extends Martha {
 		}
 	}
 
-	public void mixedSearch(String goal, LinkedHashSet<String> path,
-			int search_depth) {
+	public void mixedSearch(String goal, LinkedHashSet<String> path, int search_depth) {
 		System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
@@ -613,8 +598,7 @@ public class MarthaProcess extends Martha {
 			for (String a : actions) {
 				// For each possible action chain, find dependencies, then find
 				// where it can lead.
-				for (LinkedHashSet<String> possible : backwardsSearch(a,
-						newpath, search_depth + 1)) {
+				for (LinkedHashSet<String> possible : backwardsSearch(a, newpath, search_depth + 1)) {
 					forwardsSearch(a, possible, search_depth + 1);
 				}
 			}
@@ -644,32 +628,28 @@ public class MarthaProcess extends Martha {
 	// the
 	// specified postconditions.
 	public ArrayList<String> getActionsForPostconditions(String postconditions) {
-		ArrayList<String> actions = interpret("?(causes-PropProp ?ACTIONS "
-				+ postconditions + ")", assrtctx);
+		ArrayList<String> actions = interpret("?(causes-PropProp ?ACTIONS " + postconditions + ")", assrtctx);
 		return actions;
 	}
 
 	// This is an abstraction of a query that gets a list of preconditions that
 	// are required by the specified action.
 	public ArrayList<String> getPreconditionsForAction(String action) {
-		ArrayList<String> preconditions = interpret(
-				"?(preconditionFor-Props ?CONDITION " + action + ")", assrtctx);
+		ArrayList<String> preconditions = interpret("?(preconditionFor-Props ?CONDITION " + action + ")", assrtctx);
 		return preconditions;
 	}
 
 	// This is an abstraction of a query that gets a list of conditions that
 	// result from a specific situation (action).
 	public ArrayList<String> resultsInConditions(String action) {
-		ArrayList<String> postconditions = interpret("?(causes-PropProp "
-				+ action + " ?CONDITIONS)", assrtctx);
+		ArrayList<String> postconditions = interpret("?(causes-PropProp " + action + " ?CONDITIONS)", assrtctx);
 		return postconditions;
 	}
 
 	// This is an abstraction of a query that gets a list of actions that
 	// are enabled by a specific situation (condition).
 	public ArrayList<String> enablesActions(String precondition) {
-		ArrayList<String> preconditions = interpret("?(preconditionFor-Props "
-				+ precondition + " ?ACTIONS)", assrtctx);
+		ArrayList<String> preconditions = interpret("?(preconditionFor-Props " + precondition + " ?ACTIONS)", assrtctx);
 		return preconditions;
 	}
 
@@ -688,8 +668,7 @@ public class MarthaProcess extends Martha {
 	 * facts from the default context, and facts that are passed on through
 	 * (beliefs <subject agent> ...) or (carryover ...)
 	 */
-	public String constructHypotheticalContext(String target_agent)
-			throws CreateException, KBTypeException {
+	public String constructHypotheticalContext(String target_agent) throws CreateException, KBTypeException {
 
 		// Let everyone know we're making a new context.
 		System.out.print("Contructing hypothetical context... ");
@@ -702,9 +681,8 @@ public class MarthaProcess extends Martha {
 		String timestamp = sdf.format(dt); // formats to a string of numbers.
 
 		// Create the hypothetical context with a long unique name.
-		String hypothetical_context = ContextImpl.findOrCreate(
-				"HYPOTHETICAL_" + timestamp + "_" + target_agent + "_"
-						+ assrtctx).toString();
+		String hypothetical_context = ContextImpl
+				.findOrCreate("HYPOTHETICAL_" + timestamp + "_" + target_agent + "_" + assrtctx).toString();
 
 		// Debug output
 		System.out.println(hypothetical_context);
@@ -718,8 +696,7 @@ public class MarthaProcess extends Martha {
 		 * and (carryover ...). These are to be carried over to the hypothetical
 		 * context.
 		 */
-		ArrayList<String> ops = interpret("?(beliefs " + target_agent
-				+ " ?FACTS)", assrtctx);
+		ArrayList<String> ops = interpret("?(beliefs " + target_agent + " ?FACTS)", assrtctx);
 		ArrayList<String> hypothetical_facts = new ArrayList<String>();
 		hypothetical_facts.addAll(ops);
 		for (String o : ops) {
@@ -791,12 +768,10 @@ public class MarthaProcess extends Martha {
 				else if (keywords.get(0).equals("beliefs")) {
 					new_focus = focus_ticker + 1;
 					if (action.contains("(beliefs USER")) {
-						action = action.replace("(beliefs USER ",
-								"(beliefs USER (focus " + new_focus + " ");
+						action = action.replace("(beliefs USER ", "(beliefs USER (focus " + new_focus + " ");
 						action = action + ")";
 					} else if (action.contains("(beliefs MARTHA")) {
-						action = action.replace("(beliefs MARTHA ",
-								"(beliefs MARTHA (focus " + new_focus + " ");
+						action = action.replace("(beliefs MARTHA ", "(beliefs MARTHA (focus " + new_focus + " ");
 						action = action + ")";
 						shouldassert = false;
 					}
@@ -810,13 +785,18 @@ public class MarthaProcess extends Martha {
 				 */
 				else if (keywords.get(0).equals("sowhat")) {
 					new_focus = focus_ticker + 1;
-					action = action.replace("(sowhat ", "(carryover (focus "
-							+ new_focus + " ");
+					action = action.replace("(sowhat ", "(carryover (focus " + new_focus + " ");
 					action = action + ")";
 					shouldassert = false;
 					System.out.println("Exec debug: " + action);
 					interpret(">" + action, assrtctx);
 					state = 0;
+				} else if (keywords.get(0).equals("query-TMF")) {
+					LinkedHashSet<String> query = new LinkedHashSet<String>();
+					query.add(action);
+					MainProcess.martha.queueEvaluation(query);
+					shouldassert = false;
+					state = 2;
 				} else {
 					// No match, don't assert.
 					shouldassert = false;
@@ -829,14 +809,15 @@ public class MarthaProcess extends Martha {
 			if (shouldassert) {
 				// Assert that it has been done.
 				interpret(">" + action, assrtctx);
-				interpret(">(exactAssertTime " + action
-						+ " (IndexicalReferentFn Now-Indexical))", assrtctx);
+				interpret(">(exactAssertTime " + action + " (IndexicalReferentFn Now-Indexical))", assrtctx);
+				System.out.println(action);
 			}
-			focus_ticker = new_focus;
 
 			// Get the next action
 			action = getEnqueuedAction();
 		}
+
+		focus_ticker = new_focus;
 
 		// Return the state of the execution.
 		return state;
@@ -892,6 +873,23 @@ public class MarthaProcess extends Martha {
 				if (current_value != 0 || true) {
 					System.out.println("<" + current_value + "> " + a);
 				}
+
+				/*
+				 * If something is, hypothetically, so bad that it's worse than
+				 * the legitimacy threshold, it is worth exploring the
+				 * possibilities to avoid the bad thing. Note that the main
+				 * MARTHA engine doesn't execute these because that would make
+				 * MARTHA inclined to do bad things too; it merely explores them
+				 * and see the results.
+				 * 
+				 * For that reason, it is only available in FORWARDS mode.
+				 */
+				if (mode.equals("forwards") && current_value <= -legitimacy_threshold) {
+					for (String c : a) {
+						queueExecution("(sowhat " + c + ")");
+					}
+				}
+
 				a = evaluation_queue.poll();
 			}
 

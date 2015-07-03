@@ -1,0 +1,3 @@
+=(desires USER (possesses USER FiveDollarSteakSandwich))
+=(desires USER (buys USER FiveDollarSteakSandwich))
+=(desires USER (walkTo USER ArtificialSandwiches))

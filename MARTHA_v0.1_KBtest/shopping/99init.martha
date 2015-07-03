@@ -17,3 +17,6 @@
 #=(baseUtilityValue USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens) 30)
 #This is a very important desire.
 #=(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
+
+
+=(temperatureOfObject CityOfChicagoIL Cold)

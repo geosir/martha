@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -85,7 +86,9 @@ public class MainProcess {
 		// Initialize the Cyc database from the contents of the init folder by
 		// feeding them line by line through the MARTHA interpreter.
 		Pattern p = Pattern.compile("\\.martha$");
-		for (File f : (new File(init_folder)).listFiles()) {
+		File[] files = (new File(init_folder)).listFiles();
+		Arrays.sort(files);
+		for (File f : files) {
 			// Make sure files have the ".martha" extension EXACTLY AT THE END
 			Matcher m = p.matcher(f.toString());
 
