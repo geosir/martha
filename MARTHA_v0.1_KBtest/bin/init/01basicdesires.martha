@@ -1,0 +1,14 @@
+### DEFINE GOALS ###
+
+#The user wants to be happy
+=(desires USER (feelsEmotion USER (HighAmountFn Happiness)))
+#This action is persistent and informs all actions
+=(goalIsPersistent (desires USER (feelsEmotion USER (HighAmountFn Happiness))) True)
+
+### OTHER RULES ###
+
+#Correcting false beliefs! Theory of Mind
+>(implies (and (beliefs USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER (contradict-TMF ?SOMETHING) 1000))
+#>(implies (and (beliefs USER ?SOMETHING) (unknownSentence ?SOMETHING) (contradict-TMF ?SOMETHING) (argN ?PRED 0 ?SOMETHING) (argN ?SUBJECT 1 ?SOMETHING)) (baseUtilityValue USER (say-TMF (?PRED ?SUBJECT ?FACT)) 900))
+>(implies (and (beliefs USER ?SOMETHING) (contradict-TMF ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER (contradict-TMF ?SOMETHING) 10))
+>(implies (and (beliefs USER ?SOMETHING) (unknownSentence ?SOMETHING)) (causes-PropProp (contradict-TMF ?SOMETHING) (feelsEmotion USER (HighAmountFn Happiness))))

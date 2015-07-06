@@ -1,0 +1,14 @@
+### DEFINE CONSTANTS ###
+
+### DEFINE FUNCTIONS ###
+
+### UTILITY VALUES ###
+
+#>(implies (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))) (baseUtilityValue USER (says MARTHA (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel)))) 200))
+
+### OTHER RULES ###
+
+>(implies (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))) (beliefs USER (beliefs MARTHA (causes-PropProp (feelsEmotion USER (LowAmountFn ComfortLevel)) (says MARTHA (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))))))))
+>(implies (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))) (beliefs USER (causes-PropProp (says MARTHA (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel)))) (feelsEmotion USER (HighAmountFn Happiness)))))
+
+#NOTICE! Should the implication above be outside or within the beliefs
