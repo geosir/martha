@@ -1,0 +1,13 @@
+=(desires USER (possesses USER FiveDollarSteakSandwich))
+=(desires USER (buys USER FiveDollarSteakSandwich))
+=(desires USER (walkTo USER ArtificialSandwiches))
+
+=(desires USER (possesses USER ExquisiteJambon))
+=(desires USER (buys USER ExquisiteJambon))
+=(desires USER (driveTo USER SuperSubs))
+
+=(desires USER (buys USER JimmyJohnnyBLT))
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 2))
+
+=(desires USER (buys USER FiveDollarSteakSandwich))
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 7))

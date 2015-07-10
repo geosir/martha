@@ -6,7 +6,7 @@
  * in the MARTHA engine.
  *===========================================*/
 
-package moe.george.martha_v01;
+package moe.george.martha_v02_1;
 
 public class MarthaConsciousness implements Runnable {
 
@@ -38,6 +38,9 @@ public class MarthaConsciousness implements Runnable {
 
 	// The Martha Consciousness thread.
 	private Thread t;
+	
+	//Boolean to toggle debug output
+	public final static int debug = MainProcess.debug;
 
 	// Get the Martha instance from the MainProcess.
 	public MarthaConsciousness(Martha m) {
@@ -58,7 +61,7 @@ public class MarthaConsciousness implements Runnable {
 			 * TheoryOfMind1, or go back in a previous git version.
 			 */
 
-			martha.planForGoals();
+			//martha.planForGoals();
 			martha.explore();
 
 			/*
@@ -76,15 +79,15 @@ public class MarthaConsciousness implements Runnable {
 				martha.cleanup();
 
 				// DEBUG: Dump of USER/MARTHA knowledge.
-				System.out.println("USER believes:");
-				martha.interpretFromUser("?(beliefs USER ?WHAT)");
-				System.out.println("MARTHA believes:");
-				martha.interpretFromUser("?(beliefs MARTHA ?WHAT)");
+				if(debug>=2) System.out.println("USER believes:");
+				if(debug>=2) martha.interpretFromUser("?(beliefs USER ?WHAT)");
+				if(debug>=2) System.out.println("MARTHA believes:");
+				if(debug>=2) martha.interpretFromUser("?(beliefs MARTHA ?WHAT)");
 
 				// DEBUG: Pause to allow the operator to inspect debug code.
 				// Print dots to show time.
 				for (int i = 0; i < 3; i++) {
-					// System.out.print(".");
+					// if(debug) System.out.print(".");
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
@@ -92,7 +95,7 @@ public class MarthaConsciousness implements Runnable {
 						e.printStackTrace();
 					}
 				}
-				System.out.println();
+				if(debug>=2) System.out.println();
 			}
 
 			// Shift focus to next cycle
@@ -103,7 +106,7 @@ public class MarthaConsciousness implements Runnable {
 	// Spawn this new thread.
 	public void start() {
 		// Let the user know it's all starting up.
-		System.out.println("Starting Martha Consciousness... " + name);
+		if(debug>=1) System.out.println("Starting Martha Consciousness... " + name);
 		if (t == null) {
 			t = new Thread(this, name);
 			t.start();

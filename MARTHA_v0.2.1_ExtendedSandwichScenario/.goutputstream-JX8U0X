@@ -1,0 +1,9 @@
++MARTHA
++USER
++FiveDollarSteakSandwich
+
+>(isa USER Person)
+
+>(isa FiveDollarSteakSandwich Sandwich)
+
+>(desires

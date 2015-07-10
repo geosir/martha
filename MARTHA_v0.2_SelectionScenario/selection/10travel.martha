@@ -1,0 +1,52 @@
+### DEFINE CONSTANTS ###
+
+
+
+### DEFINE FUNCTIONS ###
+
+#Concept of driving to a certain place. Takes 2 args, a person and a destination.
+*driveTo
+=(arity driveTo 2)
+=(argIsa driveTo 1 Person)
+=(argIsa driveTo 2 Place)
+#Driving somwhere causes the person to be at the place.
+>(causes-PropProp (driveTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#The precondition for driving somewhere is knowing where it is.
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (driveTo USER ?PLACE)))
+
+#Create concept of walkinig to a place, takes args of a person and a place
+*walkTo
+=(arity walkTo 2)
+=(argIsa walkTo 1 Person)
+=(argIsa walkTo 2 Place)
+#Walking somewhere will be you be at that place
+>(causes-PropProp (walkTo ?PERSON ?PLACE) (at-UnderspecifiedLandmark ?PERSON ?PLACE))
+#A precondition for walking somewhere is knowing where it is.
+>(implies (placeInCity ?PLACE ?CITY) (preconditionFor-Props (knows USER (placeInCity ?PLACE ?CITY)) (walkTo USER ?PLACE)))
+
+### UTILITY VALUES ###
+
+#Travel costs
+#>(baseUtilityValue USER (driveTo USER ?PLACE) -10)
+#>(baseUtilityValue USER (walkTo USER ?PLACE) 0)
+
+### OTHER RULES ###
+
+#A precondition for being happy is wearing appropriate clothing.
+#>(preconditionFor-Props (wearsClothing USER ??APPROPRIATECLOTHING) (feelsEmotion USER (HighAmountFn Happiness)))
+#If the user is going outside, this means that the user would want to know the weather outside and what to wear in order to be happy.
+#>(implies (and (temperatureOfObject ?PLACE ?TEMPERATURE) (desires USER (at-UnderspecifiedLandmark USER ?PLACE)))(preconditionFor-Props (knows USER (temperatureOfObject ?PLACE ?TEMPERATURE)) (wearsClothing USER ??APPROPRIATECLOTHING)))
+
+#If the user knows that the weather at a place is sunny, he will assume it is warm.
+#>(implies (knows USER (weather ?PLACE SunnyArea)) (beliefs USER (temperatureOfObject ?PLACE Warm)))
+
+>(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (beliefs MARTHA (desires ?AGENT (walkTo ?AGENT ?PLACE))) (walkTo ?AGENT ?PLACE)))
+>(implies (and (unknownSentence (desires ?AGENT (walkTo ?AGENT ?PLACE))) (unknownSentence (desires ?AGENT (driveTo ?AGENT ?PLACE)))) (preconditionFor-Props (beliefs MARTHA (desires ?AGENT (driveTo ?AGENT ?PLACE))) (driveTo ?AGENT ?PLACE)))
+
+>(implies (or (temperatureOfObject ?PLACE Cold) (and (placeInCity ?PLACE ?CITY) (temperatureOfObject ?CITY Cold))) (causes-PropProp (walkTo ?AGENT ?PLACE) (feelsSensation ?AGENT (LowAmountFn ComfortLevel))))
+
+>(implies (causes-PropProp (temperatureOfObject ?PLACE Cold) (feelsSensation ?AGENT (LowAmountFn ComfortLevel))) (prevents-SitProp (SituationFn ?WEARS (wearsClothing ?AGENT WarmClothes)) (feelsSensation ?AGENT (LowAmountFn ComfortLevel))))
+
+>(implies (and (desires ?AGENT (walkTo ?AGENT ?PLACE)) (or (temperatureOfObject ?PLACE Cold) (and (placeInCity ?PLACE ?CITY) (temperatureOfObject ?CITY Cold)))) (causes-PropProp (temperatureOfObject ?PLACE Cold) (feelsSensation ?AGENT (LowAmountFn ComfortLevel))))
+
+

@@ -1,0 +1,62 @@
+### DEFINE CONSTANTS ###
+
+#Sandwich Shop
++ArtificialSandwiches
+=(isa ArtificialSandwiches SandwichShop-FastFoodRestaurant)
+=(isa ArtificialSandwiches Place)
+=(placeInCity ArtificialSandwiches CityOfChicagoIL)
+
++JimmyJohnnySandwichShop
+=(isa JimmyJohnnySandwichShop SandwichShop-FastFoodRestaurant)
+=(isa JimmyJohnnySandwichShop Place)
+=(placeInCity JimmyJohnnySandwichShop CityOfNewYorkNY)
+
++SuperbSubs
+=(isa SuperbSubs SandwichShop-FastFoodRestaurant)
+=(isa SuperbSubs Place)
+=(placeInCity SuperbSubs CityOfParisFrance)
+
+#A *specific* $5 steak sandwich. Delicious!
++FiveDollarSteakSandwich
+=(isa FiveDollarSteakSandwich Sandwich)
+=(isa FiveDollarSteakSandwich Product)
+#The FiveDollarSteakSandwich costs $5.00
+=(basicPrice FiveDollarSteakSandwich (Dollar-UnitedStates 5.00))
+=(sells ArtificialSandwiches FiveDollarSteakSandwich)
+
++JimmyJohnnyBLT
+=(isa JimmyJohnnyBLT Sandwich)
+=(isa JimmyJohnnyBLT Product)
+=(basicPrice JimmyJohnnyBLT (Dollar-UnitedStates 3.50))
+=(sells JimmyJohnnySandwichShop JimmyJohnnyBLT)
+
++ExquisiteJambon
+=(isa ExquisiteJambon Sandwich)
+=(isa ExquisiteJambon Product)
+=(basicPrice ExquisiteJambon (Dollar-UnitedStates 8.00))
+=(sells SuperbSubs ExquisiteJambon)
+
+
+### UTILITY VALUES ###
+>(baseUtilityValue USER (buys USER ??PRODUCT) 0)
+
+### OTHER RULES ###
+
+#A precondition for buying a product is knowing its price.
+>(implies (basicPrice ?PRODUCT ?VALUE) (preconditionFor-Props (knows ?AGENT (basicPrice ?PRODUCT ?VALUE)) (buys ?AGENT ?PRODUCT)))
+
+#A precondition for buying a product is knowing where to buy it.
+>(implies (sells ?STORE ?PRODUCT) (preconditionFor-Props (knows ?AGENT (sells ?STORE ?PRODUCT)) (buys ?AGENT ?PRODUCT)))
+
+#One way to possess an item is to buy it.
+>(causes-PropProp (buys USER ?PRODUCT) (possesses USER ?PRODUCT))
+
+#Another way is to make it yourself.
+#>(implies (isa ?ITEM HomemadeArtifact) (causes-PropProp (makes USER ?ITEM) (possesses USER ?ITEM)))
+
+>(implies (buys ?AGENT ?SOMETHING) (possesses ?AGENT ?SOMETHING))
+
+
+>(implies (and (beliefs ?AGENT (sells ?STORE ?PRODUCT)) (desires ?AGENT (buys ?AGENT ?PRODUCT))) (causes-PropProp (desires ?AGENT (buys ?AGENT ?PRODUCT)) (desires ?AGENT (at-UnderspecifiedLandmark ?AGENT ?STORE))))
+
+>(implies (unknownSentence (desires ?AGENT (buys ?AGENT ?PRODUCT))) (preconditionFor-Props (beliefs MARTHA (desires ?AGENT (buys ?AGENT ?PRODUCT))) (buys ?AGENT ?PRODUCT)))

@@ -1,0 +1,88 @@
+### DEFINE CONSTANTS ###
+
+#MARTHA, the program
++MARTHA
+=(isa MARTHA IntelligentAgent)
+
+#USER, the MARTHA User.
++USER
+=(isa USER Person)
+
+### DEFINE MARTHA FUNCTIONS ###
+
+#TMF is short for TMF
+
+#Define say-TheMARTHAFunction: Output a statement to the user.
+#Syntax: (say-TMF <thing to say>)
+*say-TMF
+=(arity say-TMF 1)
+=(argIsa say-TMF 1  Thing)
+#Saying something causes the user to know what was said.
+>(causes-PropProp (say-TMF ?THING) (knows USER ?THING))
+#Saying something implies that the user knows that was said.
+#This is distinct from causes-PropProp, since this will actually
+#make Cyc change the state of (knows USER ?THING)
+>(implies (say-TMF ?THING) (knows USER ?THING))
+>(implies (say-TMF ?THING) (knows MARTHA (knows USER ?THING)))
+#NOTE: It is no longer a precondition for say-TMF that the user does unknownSentence  know.
+#It is now codeded as a negative utility value.
+
+#Define say-TheMARTHAFunction: Output a statement to the user.
+#Syntax: (contradict-TMF <thing to contradict>)
+*contradict-TMF
+=(arity contradict-TMF 1)
+=(argIsa contradict-TMF 1  Thing)
+
+#Define query-TheMARTHAFunction: Ask the user a question.
+#Syntax: (query-TMF <thing to ask>)
+*query-TMF
+=(arity query-TMF 1)
+=(argIsa query-TMF 1 Thing)
+#Asking whether the user knows something is a precondition for MARTHA knowing
+#what the user knows.
+>(causes-PropProp (unknownSentence  (knows MARTHA (knows USER ?THING))) (query-TMF (knows USER ?THING)))
+>(causes-PropProp (query-TMF (knows USER ?THING)) (knows MARTHA (knows USER ?THING)))
+
+#Predicate indicating the persistence of goal.
+#Syntax: (goalIsPersistent <goal> <isPersistent? T/F>)
+*goalIsPersistent
+=(arity goalIsPersistent 2)
+=(argIsa goalIsPersistent 1 Thing)
+=(argIsa goalIsPersistent 2 TruthValue)
+
+#The BASE utility value of a particular state to the Intelligent Agent.
+#Syntax: (baseUtilityValue <subjective agent> <action> <base utility>)
+*baseUtilityValue
+=(arity baseUtilityValue 3)
+=(argIsa baseUtilityValue 1 IntelligentAgent)
+=(argIsa baseUtilityValue 2 Thing)
+=(argIsa baseUtilityValue 3 Thing)
+
+### UTILITY VALUES ###
+
+#Set the utility values of KNOWS
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (knows USER ?THING) 10))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
+>(implies (and ?THING (unknownSentence  (knows MARTHA (knows USER ?THING)))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 10))
+>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 5))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) -10))
+
+#Utility values of DESIRES
+>(implies (and (desires USER ?SOMETHING) (or (unknownSentence ?SOMETHING) (not ?SOMETHING))) (baseUtilityValue USER ?SOMETHING 20))
+>(implies (and (desires USER ?SOMETHING) ?SOMETHING) (baseUtilityValue USER ?SOMETHING 5))
+
+### OTHER RULES ###
+
+#If the user knows something in the KB, then MARTHA knows that the user knows something.
+>(implies (knows USER ?SOMETHING) (knows MARTHA (knows USER ?SOMETHING)))
+
+#The user knows that is said, and MARTHA knows it too.
+>(implies (say-TMF ?THING) (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))))
+
+#If both MARTHA and the user know something, it's because they syncrhonized. Thus, the user knows that martha knows something.
+>(implies (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))) (knows USER (knows MARTHA (knows USER ?THING))))
+
+#Correcting false beliefs! Theory of Mind
+>(implies (and (beliefs USER ?SOMETHING) (unknownSentence ?SOMETHING)) (contradict-TMF ?SOMETHING))
+

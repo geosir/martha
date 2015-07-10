@@ -7,7 +7,7 @@
  * ------------------------------------------------
  * NOTE: Comments added while working.
  * ===================================================*/
-package moe.george.martha_v01;
+package moe.george.martha_v02;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,7 +34,7 @@ public class MainProcess {
 	 * The path at which the init folder containing MARTHA knowledge can be
 	 * found.
 	 */
-	public final static String init_folder = "shopping";
+	public final static String init_folder = "extended";
 	public final static String history_file = "history.martha";
 
 	// The context in which all assertions are made.
@@ -45,6 +45,9 @@ public class MainProcess {
 	 * flushed.
 	 */
 	private static Boolean new_context_each_time = true;
+	
+	//Boolean to toggle debug output
+	public static int debug = 2;
 
 	// ============ Declare variables used throughout ============
 	// The MARTHA Engine, through which all operations are performed.
@@ -69,11 +72,11 @@ public class MainProcess {
 			String timestamp = sdf.format(dt);
 
 			context = timestamp + "Mt";
-			System.out.println(context);
+			if(debug>=2) System.out.println(context);
 		}
 
 		// Let the user know that we're starting up
-		System.out.println("Initializing MARTHA...");
+		if(debug>=1) System.out.println("Initializing MARTHA...");
 		martha = new Martha(context); // Create a new instance of the MARTHA
 										// engine, specifying the assert
 										// context.
@@ -94,11 +97,11 @@ public class MainProcess {
 
 			// If they do, load them.
 			if (m.find()) {
-				System.out.print("Loading " + f.toString() + "... ");
+				if(debug>=1) System.out.print("Loading " + f.toString() + "... ");
 				try {
 					// Each file is loaded through the Martha Engine by name.
 					martha.initFromFile(f.toString());
-					System.out.println("Done.");
+					if(debug>=1) System.out.println("Done.");
 				} catch (IOException e) {
 					/*
 					 * Catch problems initializing from the file; no big deal,

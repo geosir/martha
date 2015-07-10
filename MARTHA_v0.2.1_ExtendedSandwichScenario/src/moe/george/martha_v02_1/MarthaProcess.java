@@ -1,4 +1,4 @@
-package moe.george.martha_v01;
+package moe.george.martha_v02_1;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -77,6 +77,9 @@ public class MarthaProcess extends Martha {
 
 	// Percentage threshold by which an action is obviously better than another.
 	// private double obviously_better_threshold = 1.2;
+	
+	//Boolean to toggle debug output
+	public final static int debug = MainProcess.debug;
 
 	// The main constructor.
 	public MarthaProcess(Martha parent_martha, String context, String defaultcontext, int init_depth,
@@ -96,16 +99,16 @@ public class MarthaProcess extends Martha {
 		agent = target_agent;
 
 		// Let everyone know that a new MARTHA is being instantiated
-		System.out.println("Creating new MARTHA Process...");
+		if(debug>=2) System.out.println("Creating new MARTHA Process...");
 
 		// Connect to the Cyc server
-		System.out.println(
+		if(debug>=2) System.out.println(
 				"Acquiring a cyc server... " + CycSessionManager.getCurrentSession().getServerInfo().getCycServer());
 
 		// Log into the Cyc server as "TheUser"
-		System.out.print("Setting cyc user... ");
+		if(debug>=2) System.out.print("Setting cyc user... ");
 		CycSessionManager.getCurrentSession().getOptions().setCyclistName("TheUser");
-		System.out.println(CycSessionManager.getCurrentSession().getOptions().getCyclistName());
+		if(debug>=2) System.out.println(CycSessionManager.getCurrentSession().getOptions().getCyclistName());
 
 		/*
 		 * Set the assertion context to the one specified by the constructor
@@ -152,16 +155,16 @@ public class MarthaProcess extends Martha {
 	 * 
 	 * 
 	 * for(String f : feed) { for (String p : possible_actions) {
-	 * //System.out.println(f); String seed = "(?PRED " + f + " ?FACT)";
-	 * //System.out.println(generate(seed)); forwardsSearch( "(" +
+	 * //if(debug) System.out.println(f); String seed = "(?PRED " + f + " ?FACT)";
+	 * //if(debug) System.out.println(generate(seed)); forwardsSearch( "(" +
 	 * getKeyWords(p).get(0) + " " + generate() + ")", new
 	 * LinkedHashSet<String>(), 0); }
 	 * 
 	 * }
 	 * 
 	 * 
-	 * for (String p : possible_actions) { // System.out.println(f); //
-	 * System.out.println(generate(seed)); forwardsSearch( "(" +
+	 * for (String p : possible_actions) { // if(debug) System.out.println(f); //
+	 * if(debug) System.out.println(generate(seed)); forwardsSearch( "(" +
 	 * getKeyWords(p).get(0) + " " + generate() + ")", new
 	 * LinkedHashSet<String>(), 0); } }
 	 */
@@ -191,16 +194,16 @@ public class MarthaProcess extends Martha {
 		// Set the mode for this process to a forwards search.
 		mode = "forwards";
 
-		System.out.println(agent + " ===EXPLORE=== " + depth);
+		if(debug>=2) System.out.println(agent + " ===EXPLORE=== " + depth);
 
 		// Some nice debug output.
-		System.out.println("FOCUS TICKER: " + focus_ticker);
-		interpretFromUser("?(focus ?WHAT ?SOMETHING)");
+		if(debug>=2) System.out.println("FOCUS TICKER: " + focus_ticker);
+		if(debug>=2) interpretFromUser("?(focus ?WHAT ?SOMETHING)");
 
 		// Get the focus statements for this particular tick
 		for (String s : interpret("?(focus " + focus_ticker + " ?SOMETHING)")) {
 			// Some nice debig output.
-			System.out.println(">>> " + s);
+			if(debug>=2) System.out.println(">>> " + s);
 
 			// Explore the given focus statement.
 			explore(s);
@@ -241,7 +244,7 @@ public class MarthaProcess extends Martha {
 			} catch (Exception e) {
 				// Catch errors and silence them.
 				// DEBUG:
-				// System.out.println("ERROR WHILE SPAWNING NEW EXPLORER.");
+				// if(debug) System.out.println("ERROR WHILE SPAWNING NEW EXPLORER.");
 			}
 		}
 	}
@@ -254,11 +257,29 @@ public class MarthaProcess extends Martha {
 
 		try {
 			// A nice debug flag.
-			System.out.println(agent + " ===EXPLORE=== " + depth);
+			if(debug>=2) System.out.println(agent + " ===EXPLORE=== " + depth);
 
 			// The forwads search itself! This is what does the simulation at
 			// each level.
 			forwardsSearch(inquiry, new LinkedHashSet<String>(), 0);
+			
+			// Query the database to find the user's desires.
+			ArrayList<String> goals = interpret("?(desires " + agent + " ?DESIRES)", assrtctx);
+
+			if(debug>=2) System.out.println("GOALS: " + goals);
+			for (String g : goals) {
+
+				// An ArrayList to store paths to the goals found by the backwards
+				// search.
+				ArrayList<LinkedHashSet<String>> paths = backwardsSearch(g, new LinkedHashSet<String>(), 0);
+
+				// Unless the path is bad, queue each found path for evaluation.
+				for (LinkedHashSet<String> p : paths) {
+					if (!(paths.contains("ERROR|IMPOSSIBLE"))) {
+						queueEvaluation(p);
+					}
+				}
+			}
 
 			// Evaluate the plans produced by the forwards search.
 			evaluatePlans();
@@ -273,14 +294,14 @@ public class MarthaProcess extends Martha {
 		// Set the mode to a backwards search.
 		mode = "backwards";
 
-		System.out.println("USER believes:");
-		interpretFromUser("?(beliefs USER ?WHAT)");
-		System.out.println("MARTHA believes:");
-		interpretFromUser("?(beliefs MARTHA ?WHAT)");
+		if(debug>=2) System.out.println("USER believes:");
+		if(debug>=2) interpretFromUser("?(beliefs USER ?WHAT)");
+		if(debug>=2) System.out.println("MARTHA believes:");
+		if(debug>=2) interpretFromUser("?(beliefs MARTHA ?WHAT)");
 
 		try {
 			// A nice debug marker
-			System.out.println(agent + " ============== " + depth);
+			if(debug>=2) System.out.println(agent + " ============== " + depth);
 
 			// If this isn't the bottom layer...
 			if (depth > 0) {
@@ -315,13 +336,13 @@ public class MarthaProcess extends Martha {
 		}
 
 		// A nice marker for debug.
-		System.out.println(agent + " ============== " + depth);
+		if(debug>=2) System.out.println(agent + " ============== " + depth);
 
 		//
 		// Query the database to find the user's desires.
 		ArrayList<String> goals = interpret("?(desires " + agent + " ?DESIRES)", assrtctx);
 
-		System.out.println("GOALS: " + goals);
+		if(debug>=2) System.out.println("GOALS: " + goals);
 
 		// THE ACTUAL SEARCHING ITSELF!
 		// For each desire (which is a goal in this case), evaluate the possible
@@ -396,7 +417,7 @@ public class MarthaProcess extends Martha {
 	// recursively looks for dependenceies for actions and goals.
 	public ArrayList<LinkedHashSet<String>> backwardsSearch(String goal, LinkedHashSet<String> path, int search_depth) {
 
-		System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
+		if(debug>=2) System.out.println(">>> BACKWARDS   : " + goal + " " + depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
 		// thus far.
@@ -442,6 +463,8 @@ public class MarthaProcess extends Martha {
 							newagent = "USER";
 						}
 						newpath.add("(desires " + newagent + " " + p + ")");
+						//newpath.add("(desires " + agent + " " + p + ")");
+						//newpath.add("(sowhat (knows "+agent+" " + p + "))");
 						newpaths.add(newpath);
 					} else {
 						// In all other cases, just add all preconditions to the
@@ -505,21 +528,21 @@ public class MarthaProcess extends Martha {
 			if (!preconditions.isEmpty()) {
 				newpath.add("IMPOSSIBLE"); // Mark this line of search as
 											// impossible.
-				// System.out.println(">>>>>> IMPOSSIBLE - REACHED MAX DEPTH
+				// if(debug) System.out.println(">>>>>> IMPOSSIBLE - REACHED MAX DEPTH
 				// <<<<<<");
 				newpaths.add(newpath);
 			}
 		}
 
 		// Return results.
-		System.out.println(newpaths);
+		if(debug>=2) System.out.println(newpaths);
 		return newpaths;
 	}
 
 	// Forwards search algorithm. Given a goal, this looks for what actions can
 	// stem from it into the future.
 	public void forwardsSearch(String goal, LinkedHashSet<String> path, int search_depth) {
-		System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
+		if(debug>=2) System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
 		// thus far.
@@ -571,7 +594,7 @@ public class MarthaProcess extends Martha {
 	}
 
 	public void mixedSearch(String goal, LinkedHashSet<String> path, int search_depth) {
-		System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
+		if(debug>=2) System.out.println(">>> FORWARDS    : " + goal + " " + search_depth);
 
 		// An ArrayList to store the current cumulative chain of actions found
 		// thus far.
@@ -655,7 +678,7 @@ public class MarthaProcess extends Martha {
 
 	// Add an action to the execution queue.
 	public int queueExecution(String action) {
-		System.out.println("EXEC-QUEUED(" + depth + "): " + action);
+		if(debug>=2) System.out.println("EXEC-QUEUED(" + depth + "): " + action);
 		execution_queue.add(action);
 		return 0;
 	}
@@ -671,9 +694,9 @@ public class MarthaProcess extends Martha {
 	public String constructHypotheticalContext(String target_agent) throws CreateException, KBTypeException {
 
 		// Let everyone know we're making a new context.
-		System.out.print("Contructing hypothetical context... ");
+		if(debug>=2) System.out.print("Contructing hypothetical context... ");
 		// Debug output
-		System.out.println(defaultctx);
+		if(debug>=2) System.out.println(defaultctx);
 
 		// Get the date; the context is named based on the time and date.
 		SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyyyHHmmss");
@@ -685,7 +708,7 @@ public class MarthaProcess extends Martha {
 				.findOrCreate("HYPOTHETICAL_" + timestamp + "_" + target_agent + "_" + assrtctx).toString();
 
 		// Debug output
-		System.out.println(hypothetical_context);
+		if(debug>=2) System.out.println(hypothetical_context);
 
 		// Assert that this hypothetical context inherits facts from the
 		// highest, default context.
@@ -704,14 +727,14 @@ public class MarthaProcess extends Martha {
 		}
 
 		hypothetical_facts.addAll(interpret("?(carryover ?CARRYOVER)"));
-		System.out.println("TT: " + target_agent);
+		if(debug>=2) System.out.println("TT: " + target_agent);
 
 		/*
 		 * Assert the (...) part as facts above in the hypothetical context
 		 * because those are what <next agent> believes.
 		 */
 		for (String f : hypothetical_facts) {
-			System.out.println(hypothetical_context + ": " + f);
+			if(debug>=2) System.out.println(hypothetical_context + ": " + f);
 			interpret(">" + f, hypothetical_context);
 		}
 		return hypothetical_context;
@@ -742,7 +765,7 @@ public class MarthaProcess extends Martha {
 		while (action != null) {
 			// Let the user know that action is being executed
 			// Silenced.
-			System.out.println("Execute " + action);
+			if(debug>=2) System.out.println("Execute " + action);
 
 			ArrayList<String> keywords = getKeyWords(action);
 
@@ -757,7 +780,8 @@ public class MarthaProcess extends Martha {
 				// Where TMF is short for "TheMARTHAFunction"
 				if (keywords.get(0).equals("desires")) {
 					shouldassert = false;
-					interpret(">" + action, assrtctx);
+					//interpret(">" + action, assrtctx);
+					queueExecution("(sowhat "+action+")");
 					state = 0;
 				}
 				/*
@@ -775,7 +799,7 @@ public class MarthaProcess extends Martha {
 						action = action + ")";
 						shouldassert = false;
 					}
-					System.out.println("Exec debug: " + action);
+					if(debug>=2) System.out.println("Exec debug: " + action);
 					interpret(">" + action, assrtctx);
 					state = 0;
 				}
@@ -788,7 +812,7 @@ public class MarthaProcess extends Martha {
 					action = action.replace("(sowhat ", "(carryover (focus " + new_focus + " ");
 					action = action + ")";
 					shouldassert = false;
-					System.out.println("Exec debug: " + action);
+					if(debug>=2) System.out.println("Exec debug: " + action);
 					interpret(">" + action, assrtctx);
 					state = 0;
 				} else if (keywords.get(0).equals("query-TMF")) {
@@ -810,7 +834,7 @@ public class MarthaProcess extends Martha {
 				// Assert that it has been done.
 				interpret(">" + action, assrtctx);
 				interpret(">(exactAssertTime " + action + " (IndexicalReferentFn Now-Indexical))", assrtctx);
-				System.out.println(action);
+				if(debug>=2) System.out.println(action);
 			}
 
 			// Get the next action
@@ -839,7 +863,7 @@ public class MarthaProcess extends Martha {
 			// With highest sum value.
 
 			// Instantiate some variables
-			LinkedHashSet<String> candidate = a;
+			LinkedHashSet<String> candidate = new LinkedHashSet<String>();
 			float highest_value = 0;
 
 			while (a != null) {
@@ -859,19 +883,25 @@ public class MarthaProcess extends Martha {
 				// Add up the value of all actions in the plan
 				for (String s : a) {
 					current_value = getUtility(s) + current_value;
-					System.out.println("ACTION(" + getUtility(s) + "): " + s);
+					if(debug>=2) System.out.println("ACTION(" + getUtility(s) + "): " + s);
 				}
 
 				// If the plan is of equal or higher value of the highest value,
 				// Add it to the candidate list.
 				if (current_value > highest_value) {
-					candidate = a;
+					//candidate = a;
 					highest_value = current_value;
-				} else if (current_value == highest_value) {
+				}/* else if (current_value == highest_value) {
+					candidate.addAll(a);
+				}*/
+				
+				//If the plan exceeds the legitimacy threshold, add it to the candidate list.
+				if(current_value >= legitimacy_threshold)
+				{
 					candidate.addAll(a);
 				}
 				if (current_value != 0 || true) {
-					System.out.println("<" + current_value + "> " + a);
+					if(debug>=2) System.out.println("<" + current_value + "> " + a);
 				}
 
 				/*
@@ -896,8 +926,8 @@ public class MarthaProcess extends Martha {
 			// If the highest value exceeds the minimum score needed,
 			// Go ahead an queue for execution.
 			if (highest_value >= legitimacy_threshold) {
-				System.out.println("APPROVED: " + candidate);
-				System.out.println("SCORE: " + highest_value);
+				if(debug>=2) System.out.println("APPROVED: " + candidate);
+				if(debug>=2) System.out.println("SCORE: " + highest_value);
 
 				// Queue all actions in the approved plan for execution.
 				for (String c : candidate) {
@@ -909,7 +939,7 @@ public class MarthaProcess extends Martha {
 					 * present process for execution, which will carry over the
 					 * appropriate facts to the CHILD process.
 					 */
-					System.out.println("Q+EXEC: " + c);
+					if(debug>=2) System.out.println("Q+EXEC: " + c);
 					if (mode.equals("backwards")) {
 						parent.queueExecution(c);
 					} else {
@@ -918,12 +948,12 @@ public class MarthaProcess extends Martha {
 
 				}
 			} else {
-				// System.out.println("THRESHOLD UNMET: " + candidate + " " +
+				// if(debug) System.out.println("THRESHOLD UNMET: " + candidate + " " +
 				// highest_value);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.out.println("Warning: Evaluation failed.");
+			if(debug>=1) System.out.println("Warning: Evaluation failed.");
 		}
 
 	}
@@ -941,7 +971,7 @@ public class MarthaProcess extends Martha {
 		if (mode == "forwards") {
 			MainProcess.martha.queueEvaluation(path);
 		}
-		System.out.println("EVAL-QUEUED: " + path);
+		if(debug>=2) System.out.println("EVAL-QUEUED: " + path);
 		return 0;
 	}
 }

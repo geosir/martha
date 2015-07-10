@@ -1,0 +1,145 @@
+### CYC INTERNALS ###
+
+>(implies (and (different ?HIGH ?LOW) (termOfUnit ?NAT (IntegerFromToFn ?LOW ?HIGH))) (integerRange ?NAT (Unity ?LOW ?HIGH)))
+
+### DEFINE CONSTANTS ###
+
+#MARTHA, the program
++MARTHA
+=(isa MARTHA IntelligentAgent)
+
+#USER, the MARTHA User.
++USER
+=(isa USER Person)
+
+#Collection of all Martha Actions
+&MarthaAction
+
+@MARTHA_?
+### DEFINE MARTHA FUNCTIONS ###
+
+#TMF is short for TMF
+
+#Define say-TheMARTHAFunction: Output a statement to the user.
+#Syntax: (say-TMF <thing to say>)
+#DEPRECATED. USE (says MARTHA <thing to say>) instead.
+*say-TMF
+=(isa say-TMF MarthaAction)
+=(arity say-TMF 1)
+=(argIsa say-TMF 1  Thing)
+#Saying something causes the user to know what was said.
+>(causes-PropProp (say-TMF ?THING) (knows USER ?THING))
+#Saying something implies that the user knows that was said.
+#This is distinct from causes-PropProp, since this will actually
+#make Cyc change the state of (knows USER ?THING)
+>(implies (say-TMF ?THING) (knows USER ?THING))
+>(implies (say-TMF ?THING) (knows MARTHA (knows USER ?THING)))
+#NOTE: It is no longer a precondition for say-TMF that the user does unknownSentence  know.
+#It is now codeded as a negative utility value.
+
+#Define say-TheMARTHAFunction: Output a statement to the user.
+#Syntax: (contradict-TMF <thing to contradict>)
+*contradict-TMF
+=(arity contradict-TMF 1)
+=(argIsa contradict-TMF 1  Thing)
+
+#Define query-TheMARTHAFunction: Ask the user a question.
+#Syntax: (query-TMF <thing to ask>)
+*query-TMF
+=(arity query-TMF 1)
+=(argIsa query-TMF 1 Thing)
+#Asking whether the user knows something is a precondition for MARTHA knowing
+#what the user knows.
+>(causes-PropProp (unknownSentence  (knows MARTHA (knows USER ?THING))) (query-TMF (knows USER ?THING)))
+>(causes-PropProp (query-TMF (knows USER ?THING)) (knows MARTHA (knows USER ?THING)))
+@@
+
+#Predicate indicating the persistence of goal.
+#Syntax: (goalIsPersistent <goal> <isPersistent? T/F>)
+*goalIsPersistent
+=(arity goalIsPersistent 2)
+=(argIsa goalIsPersistent 1 Thing)
+=(argIsa goalIsPersistent 2 TruthValue)
+
+#The BASE utility value of a particular state to the Intelligent Agent.
+#Syntax: (baseUtilityValue <subjective agent> <action> <base utility>)
+*baseUtilityValue
+=(arity baseUtilityValue 3)
+=(argIsa baseUtilityValue 1 IntelligentAgent)
+=(argIsa baseUtilityValue 2 Thing)
+=(argIsa baseUtilityValue 3 Thing)
+
+#Store the SECOND-RESOLUTION assertion time of actions.
+*exactAssertTime
+=(arity exactAssertTime 2)
+=(argIsa exactAssertTime 1 Thing)
+=(argIsa exactAssertTime 2 Date)
+
+*says
+=(arity says 2)
+=(argIsa says 1 IntelligentAgent)
+=(argIsa says 2 Thing)
+=(isa says MarthaAction)
+>(preconditionFor-Props (says USER ?SOMETHING) (beliefs MARTHA ?SOMETHING))
+>(preconditionFor-Props (says MARTHA ?SOMETHING) (knows USER ?SOMETHING))
+>(implies (says USER ?SOMETHING) (beliefs MARTHA ?SOMETHING))
+>(implies (says MARTHA ?SOMETHING) (beliefs USER ?SOMEITHING))
+#>(causes-PropProp (says MARTHA ?THING) (knows USER ?THING))
+#Saying something implies that the user knows that was said.
+#This is distinct from causes-PropProp, since this will actually
+#make Cyc change the state of (knows USER ?THING)
+
+*focus
+=(arity focus 2)
+=(argIsa focus 1 Thing)
+=(argIsa focus 2 Thing)
+
+#Carry over with a focus
+*sowhat
+=(arity sowhat 1)
+=(argIsa sowhat 1 Thing)
+
+*carryover
+=(arity carryover 1)
+=(argIsa carryover 1 Thing)
+
+
+### UTILITY VALUES ###
+
+#Set the utility values of KNOWS
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (knows USER ?THING) 15))
+>(implies (and ?THING (unknownSentence (knows USER ?THING)) (beliefs USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 6))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (knows USER ?THING) 5))
+#>(implies (and ?THING (unknownSentence (knows MARTHA (knows USER ?THING)))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 10))
+#>(implies (and ?THING (knows MARTHA (knows USER ?THING))) (baseUtilityValue USER (knows MARTHA (knows USER ?THING)) 5))
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (say-TMF ?THING) 15))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (say-TMF ?THING) 5))
+>(implies (and ?THING (unknownSentence (knows USER ?THING))) (baseUtilityValue USER (says MARTHA ?THING) 15))
+>(implies (and ?THING (knows USER ?THING)) (baseUtilityValue USER (says MARTHA ?THING) 5))
+
+#Utility values of DESIRES
+>(implies (and (desires USER ?SOMETHING) (unknownSentence ?SOMETHING)) (baseUtilityValue USER ?SOMETHING 30))
+>(implies (and (desires USER ?SOMETHING) ?SOMETHING (unknownSentence (goalIsPersistent ?SOMETHING True))) (baseUtilityValue USER ?SOMETHING 5))
+
+>(baseUtilityValue USER (sowhat ?SOMETHING) 10)
+>(implies (unknownSentence ?SOMETHING) (baseUtilityValue USER (desires USER ?SOMETHING) 20))
+#>(implies (unknownSentence ?SOMETHING) (baseUtilityValue USER (query-TMF ?SOMETHING) 1000))
+>(implies (unknownSentence (query-TMF ?SOMETHING)) (baseUtilityValue USER (query-TMF ?SOMETHING) 1000))
+>(implies (query-TMF ?SOMETHING) (baseUtilityValue USER (query-TMF ?SOMETHING) 20))
+
+### OTHER RULES ###
+
+#If the user knows something in the KB, then MARTHA knows that the user knows something.
+>(implies (knows USER ?SOMETHING) (knows MARTHA (knows USER ?SOMETHING)))
+
+#The user knows that is said, and MARTHA knows it too.
+>(implies (say-TMF ?THING) (and (beliefs USER ?THING) (beliefs MARTHA (beliefs USER ?THING))))
+>(implies (says USER ?SOMETHING) (and (beliefs USER ?THING) (beliefs MARTHA (beliefs USER ?THING))))
+
+#If both MARTHA and the user know something, it's because they talked. Thus, the user knows that martha knows something.
+#>(implies (and (knows USER ?THING) (knows MARTHA (knows USER ?THING))) (knows USER (knows MARTHA (knows USER ?THING))))
+
+#If MARTHA doesn't know if a user desires something, then a precondition is to ask.
+>(implies (unknownSentence (knows MARTHA (desires ?AGENT ?SOMETHING))) (causes-PropProp (query-TMF (desires ?AGENT ?SOMETHING)) (beliefs MARTHA (desires ?AGENT ?SOMETHING))))
+
+>(causes-PropProp (sowhat (desires ?AGENT ?SOMETHING)) (sowhat ?SOMETHING))

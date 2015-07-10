@@ -14,7 +14,7 @@
  * as producing output from the results.
  *==================================================*/
 
-package moe.george.martha_v01;
+package moe.george.martha_v02;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -111,22 +111,25 @@ public class Martha {
 
 	private int max_focus_shifts = 100;
 	private int initial_focus;
+	
+	//Boolean to toggle debug output
+	public final static int debug = MainProcess.debug;
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException, SessionCommunicationException,
 			SessionInitializationException, CreateException, KBTypeException {
 
 		// Let everyone know that a new MARTHA is being instantiated
-		System.out.println("Creating new MARTHA Engine...");
+		if(debug>=2) System.out.println("Creating new MARTHA Engine...");
 
 		// Connect to the Cyc server
-		System.out.println(
+		if(debug>=2) System.out.println(
 				"Acquiring a cyc server... " + CycSessionManager.getCurrentSession().getServerInfo().getCycServer());
 
 		// Log into the Cyc server as "TheUser"
-		System.out.print("Setting cyc user... ");
+		if(debug>=2) System.out.print("Setting cyc user... ");
 		CycSessionManager.getCurrentSession().getOptions().setCyclistName("TheUser");
-		System.out.println(CycSessionManager.getCurrentSession().getOptions().getCyclistName());
+		if(debug>=2) System.out.println(CycSessionManager.getCurrentSession().getOptions().getCyclistName());
 
 		// Set the assertion context to the one specified by the constructor
 		// call
@@ -163,7 +166,7 @@ public class Martha {
 				System.out.println("initFromFile: Error at line " + linenumber + ".");
 			}
 
-			// System.out.println(line);
+			if(debug>=3) System.out.println(line);
 		}
 
 		// Close the reader to free up resources.
@@ -220,7 +223,7 @@ public class Martha {
 					ops = line.substring(1);
 					Assertion deleteassert = AssertionImpl.findOrCreate(ops, context);
 					deleteassert.delete();
-					System.out.println("DELETED");
+					if(debug>=2) System.out.println("DELETED");
 					break;
 				// + : create new constant (individual)
 				case "+":
@@ -262,7 +265,7 @@ public class Martha {
 							for (Variable v : queryVars) {
 								String result = queryResults.getKBObject(v).toString();
 								results.add(result);
-								// System.out.println(result);
+								// if(debug) System.out.println(result);
 							}
 						}
 					}
@@ -319,7 +322,7 @@ public class Martha {
 								// die.
 
 			// e.printStackTrace();
-			System.out.println("Warning: Could not interpret \"" + line + "\".");
+			if(debug>=1) System.out.println("Warning: Could not interpret \"" + line + "\".");
 			results.add("ERROR");
 			return (results);
 		}
@@ -505,7 +508,7 @@ public class Martha {
 		initial_focus = focus_ticker;
 
 		// A nice debug marker.
-		System.out.println("MARTHA ===EXPLORE=== " + depth);
+		if(debug>=2) System.out.println("MARTHA ===EXPLORE=== " + depth);
 
 		// Try-catch to silence fatal errors.
 		try {
@@ -526,7 +529,7 @@ public class Martha {
 		}
 
 		// A nice debug marker.
-		System.out.println("MARTHA ===EXPLORE=== " + depth);
+		if(debug>=2) System.out.println("MARTHA ===EXPLORE=== " + depth);
 	}
 
 	/*
@@ -536,7 +539,7 @@ public class Martha {
 	public void planForGoals() {
 
 		// A nice debug marker.
-		System.out.println("MARTHA ============== " + depth);
+		if(debug>=2) System.out.println("MARTHA ============== " + depth);
 
 		// Try-catch to silence fatal errors.
 		try {
@@ -552,7 +555,7 @@ public class Martha {
 		}
 
 		// A nice debug marker.
-		System.out.println("MARTHA ============== " + depth);
+		if(debug>=2) System.out.println("MARTHA ============== " + depth);
 	}
 
 	/***********************
@@ -636,8 +639,8 @@ public class Martha {
 		while (action != null) {
 
 			// Some nice debug output.
-			System.out.println("ACTION(" + getUtility(action) + "): " + action);
-			System.out.println("MARTHA EXECUTE: " + action);
+			if(debug>=2) System.out.println("ACTION(" + getUtility(action) + "): " + action);
+			if(debug>=2) System.out.println("MARTHA EXECUTE: " + action);
 
 			// Boolean to store whether or not the action is to be asserted.
 			boolean shouldassert = true;
@@ -699,12 +702,12 @@ public class Martha {
 						// Say what needs to be said.
 
 						/*
-						 * System.out.println(); System.out.println(
+						 * if(debug) System.out.println(); if(debug) System.out.println(
 						 * "=================================");
-						 * System.out.println("MARTHA>>> " + m.group(1));
-						 * System.out.println(
+						 * if(debug) System.out.println("MARTHA>>> " + m.group(1));
+						 * if(debug) System.out.println(
 						 * "=================================");
-						 * System.out.println();
+						 * if(debug) System.out.println();
 						 */
 
 						/*
@@ -841,7 +844,7 @@ public class Martha {
 			// Current premise is to select series of actions
 			// With highest sum value.
 
-			System.out.println("============MARTHA EVALUATION============");
+			if(debug>=2) System.out.println("============MARTHA EVALUATION============");
 
 			// Instantiate some variables
 			LinkedHashSet<String> candidate = a;
@@ -872,7 +875,7 @@ public class Martha {
 				// Add up the value of all actions in the plan
 				for (String s : a) {
 					current_value = getUtility(s) + current_value;
-					System.out.println("ACTION(" + getUtility(s) + "): " + s);
+					if(debug>=2) System.out.println("ACTION(" + getUtility(s) + "): " + s);
 				}
 
 				// If the plan is of equal or higher value of the highest value,
@@ -884,7 +887,7 @@ public class Martha {
 					candidate.addAll(a);
 				}
 				if (current_value != 0 || true) {
-					System.out.println("<" + current_value + "> " + a);
+					if(debug>=2) System.out.println("<" + current_value + "> " + a);
 				}
 
 				if (current_value < legitimacy_threshold) {
@@ -916,8 +919,8 @@ public class Martha {
 			// If the highest value exceeds the minimum score needed,
 			// Go ahead an queue for execution.
 			if (highest_value >= legitimacy_threshold) {
-				System.out.println("APPROVED: " + candidate);
-				System.out.println("SCORE: " + highest_value);
+				if(debug>=2) System.out.println("APPROVED: " + candidate);
+				if(debug>=2) System.out.println("SCORE: " + highest_value);
 
 				// Queue all actions in the approved plan for execution.
 				for (String c : candidate) {
@@ -927,7 +930,7 @@ public class Martha {
 			// If the legitimacy threshold has not been met...
 			else {
 				// Some neat debug output.
-				System.out.println("THRESHOLD UNMET: " + candidate + " " + highest_value);
+				if(debug>=2) System.out.println("THRESHOLD UNMET: " + candidate + " " + highest_value);
 
 				// If there is a candidate at all...
 				/*
@@ -960,7 +963,7 @@ public class Martha {
 		} catch (Exception e) {
 			// Catch errors and print a report.
 			e.printStackTrace();
-			System.out.println("Warning: Evaluation failed.");
+			if(debug>=1) System.out.println("Warning: Evaluation failed.");
 		}
 	}
 
@@ -984,6 +987,13 @@ public class Martha {
 			// to zero.
 			return 0f;
 		}
+	}
+	
+	//NECESSARY FOR LEARNING!
+	/* Set the base utility value of an action or condition. */
+	public void setBaseUtility(String state, double value) {
+		// Query the base utility value from the Cyc KB.
+		interpret(">(baseUtilityValue USER " + state + " "+value+")");
 	}
 
 	// Get the utility yield of an action or condition, based on a sigmoid
@@ -1050,7 +1060,7 @@ public class Martha {
 			ContextImpl.findOrCreate(context);
 			assrtctx = context;
 		} catch (Exception e) {
-			System.out.println("ERROR: Could not change context to " + context + ".");
+			if(debug>=1) System.out.println("ERROR: Could not change context to " + context + ".");
 		}
 
 	}
@@ -1058,7 +1068,7 @@ public class Martha {
 	// A method to change the default context (the context returned to by @@)
 	public void changeDefaultContext(String context) {
 		defaultctx = context;
-		System.out.println(depth + " " + defaultctx);
+		if(debug>=2) System.out.println(depth + " " + defaultctx);
 	}
 
 	// Start MARTHA's consciousness
@@ -1066,7 +1076,7 @@ public class Martha {
 		// Start the MARTHA Consciousness. We create a new instance of it here,
 		// and begin a new *thread* to have it loop in.
 		mc = new MarthaConsciousness(this);
-		System.out.println("Starting new MARTHA Consciousness...");
+		if(debug>=1) System.out.println("Starting new MARTHA Consciousness...");
 		mc.start();
 	}
 

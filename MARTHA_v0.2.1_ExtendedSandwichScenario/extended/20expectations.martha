@@ -1,0 +1,25 @@
+### DEFINE CONSTANTS ###
+
+### DEFINE FUNCTIONS ###
+
+### UTILITY VALUES ###
+
+#>(implies (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))) (baseUtilityValue USER (says MARTHA (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel)))) 200))
+
+>(implies (not (affordToBuy USER ?PRODUCT)) (baseUtilityValue USER (knows USER (not (affordToBuy USER ?PRODUCT))) 100))
+
+### OTHER RULES ###
+
+#>(implies (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))) (beliefs USER (beliefs MARTHA (causes-PropProp (feelsEmotion USER (LowAmountFn ComfortLevel)) (says MARTHA (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))))))))
+#>(implies (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))) (beliefs USER (causes-PropProp (says MARTHA (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel)))) (feelsEmotion USER (HighAmountFn Happiness)))))
+
+#NOTICE! Should the implication above be outside or within the beliefs
+
+
+#TODO: These need to be scoped so that only they reside solely in MARTHA>USER>MARTHA
+>(causes-PropProp (desires MARTHA (knows ?AGENT (affordToBuy ?AGENT ?PRODUCT))) (says MARTHA (affordToBuy ?AGENT ?PRODUCT)))))
+>(causes-PropProp (desires MARTHA (knows ?AGENT (affordToBuy ?AGENT ?PRODUCT))) (says MARTHA (not (affordToBuy ?AGENT ?PRODUCT))))))
+
+>(implies (not (affordToBuy ?AGENT ?PRODUCT)) (causes-PropProp (buys ?AGENT ?PRODUCT) (feelsEmotion ?AGENT (HighAmountFn Embarrassment))))
+
+

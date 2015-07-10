@@ -1,0 +1,23 @@
+####################################
+# This file is for initializing
+# facts and assertions needed
+# at the start of a SPECIFIC
+# MARTHA run. These should not be 
+# UNIVERSAL truths. Those shoul go
+# into an martha concept file.
+####################################
+
+#All assertions here are made into the default context.
+#@@
+
+### MISC ###
+
+#The user wants to go to the CBGs.
+#=(desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens))
+#=(baseUtilityValue USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens) 30)
+#This is a very important desire.
+#=(goalImportance USER (desires USER (at-UnderspecifiedLandmark USER ChicagoBotanicGardens)) highAmountOf)
+
+
+=(temperatureOfObject CityOfChicagoIL Cold)
+=(temperatureOfObject CityOfParisFrance Hot)
