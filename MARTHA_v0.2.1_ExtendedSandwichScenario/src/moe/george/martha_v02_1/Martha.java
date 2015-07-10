@@ -87,7 +87,7 @@ public class Martha {
 	private Queue<LinkedHashSet<String>> evaluation_queue = new LinkedList<LinkedHashSet<String>>();
 
 	// Minimum score needed for a plan to be even considered for execution.
-	private int legitimacy_threshold = 41;
+	private int legitimacy_threshold = 40;
 
 	// An object to run MARTHA's consciousness
 	MarthaConsciousness mc;

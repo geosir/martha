@@ -11,3 +11,5 @@
 
 =(desires USER (buys USER FiveDollarSteakSandwich))
 =(cashAssetsOfAgent USER (Dollar-UnitedStates 7))
+
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 4))

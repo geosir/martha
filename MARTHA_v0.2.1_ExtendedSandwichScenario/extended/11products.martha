@@ -38,7 +38,7 @@
 
 
 ### UTILITY VALUES ###
->(baseUtilityValue USER (buys USER ??PRODUCT) 0)
+
 
 ### OTHER RULES ###
 
@@ -64,3 +64,4 @@
 >(implies (unknownSentence (desires ?AGENT (buys ?AGENT ?PRODUCT))) (preconditionFor-Props (beliefs MARTHA (desires ?AGENT (buys ?AGENT ?PRODUCT))) (buys ?AGENT ?PRODUCT)))
 
 >(implies (and (basicPrice ?PRODUCT (Dollar-UnitedStates ?COST)) (cashAssetsOfAgent ?AGENT (Dollar-UnitedStates ?MONEY)) (lessThan ?MONEY ?COST)) (not (affordToBuy ?AGENT ?PRODUCT)))
+>(implies (and (basicPrice ?PRODUCT (Dollar-UnitedStates ?COST)) (cashAssetsOfAgent ?AGENT (Dollar-UnitedStates ?MONEY)) (greaterThanOrEqualTo ?MONEY ?COST)) (affordToBuy ?AGENT ?PRODUCT))

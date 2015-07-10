@@ -7,7 +7,7 @@
 
 ### UTILITY VALUES ###
 >(baseUtilityValue USER (feelsEmotion USER (LowAmountFn ComfortLevel)) -100)
->(baseUtilityValue USER (feelsEmotion USER (HighAmountFn Embarrassment)) -100)
+>(baseUtilityValue USER (feelsEmotion USER (HighAmountFn Embarrassment)) -50)
 
 ### OTHER RULES ###
 

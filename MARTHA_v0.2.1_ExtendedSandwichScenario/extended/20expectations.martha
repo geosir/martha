@@ -6,7 +6,9 @@
 
 #>(implies (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel))) (baseUtilityValue USER (says MARTHA (causes-PropProp ?CAUSE (feelsEmotion USER (LowAmountFn ComfortLevel)))) 200))
 
->(implies (not (affordToBuy USER ?PRODUCT)) (baseUtilityValue USER (knows USER (not (affordToBuy USER ?PRODUCT))) 100))
+>(implies (and (not (affordToBuy USER ?PRODUCT)) (unknownSentence (knows USER (not (affordToBuy USER ?PRODUCT))))) (baseUtilityValue USER (knows USER (not (affordToBuy USER ?PRODUCT))) 100))
+
+>(implies (not ?SENTENCE) (baseUtilityValue USER (beliefs USER ?SENTENCE) -100))
 
 ### OTHER RULES ###
 
