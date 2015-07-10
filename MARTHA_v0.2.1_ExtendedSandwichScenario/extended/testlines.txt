@@ -12,4 +12,20 @@
 =(desires USER (buys USER FiveDollarSteakSandwich))
 =(cashAssetsOfAgent USER (Dollar-UnitedStates 7))
 
+
+#Test with changing cash values.
 =(cashAssetsOfAgent USER (Dollar-UnitedStates 4))
+=(desires USER (buys USER FiveDollarSteakSandwich))
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 7))
+
+#Test with changing sandwich desires.
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 4))
+=(desires USER (buys USER FiveDollarSteakSandwich))
+=(desires USER (buys USER JimmyJohnnyBLT))
+
+#Comprehensive test
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 2))
+=(desires USER (buys USER JimmyJohnnyBLT))
+=(desires USER (buys USER FiveDollarSteakSandwich))
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 7))
+=(desires USER (buys USER JimmyJohnnyBLT))

@@ -11,8 +11,10 @@ package moe.george.martha_v02_1;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -47,7 +49,7 @@ public class MainProcess {
 	private static Boolean new_context_each_time = true;
 	
 	//Boolean to toggle debug output
-	public static int debug = 2;
+	public static int debug = 1;
 
 	// ============ Declare variables used throughout ============
 	// The MARTHA Engine, through which all operations are performed.
@@ -57,7 +59,7 @@ public class MainProcess {
 	public static void main(String[] args)
 			throws SessionConfigurationException,
 			SessionCommunicationException, SessionInitializationException,
-			CycConnectionException, KBApiException {
+			CycConnectionException, KBApiException, FileNotFoundException, UnsupportedEncodingException {
 
 		/*
 		 * Generate a new context name based on the exact time, down to the

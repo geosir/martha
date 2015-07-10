@@ -17,7 +17,10 @@
 package moe.george.martha_v02_1;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+//import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -114,10 +117,13 @@ public class Martha {
 	
 	//Boolean to toggle debug output
 	public final static int debug = MainProcess.debug;
+	
+	//Object to write salient output to a file when debug is on.
+	//PrintWriter writer;
 
 	// Constructor for the MARTHA class
 	public Martha(String context) throws SessionConfigurationException, SessionCommunicationException,
-			SessionInitializationException, CreateException, KBTypeException {
+			SessionInitializationException, CreateException, KBTypeException, FileNotFoundException, UnsupportedEncodingException {
 
 		// Let everyone know that a new MARTHA is being instantiated
 		if(debug>=2) System.out.println("Creating new MARTHA Engine...");
@@ -137,6 +143,8 @@ public class Martha {
 		assrtctx = context;
 		defaultctx = assrtctx; // Store the default context;
 		ContextImpl.findOrCreate(context);
+		
+		//writer = new PrintWriter("output.txt", "UTF-8");
 
 		// user = new Martha("userctx_"+context);
 	}
@@ -349,6 +357,9 @@ public class Martha {
 		// Check that the input is of a valid length, otherwise do nothing.
 		if (input.length() > 1) {
 
+			//DEBUG: When the console is flooded with out, write to file.
+			//if(debug>1) writer.println("MARTHA: "+input);
+			
 			// Interpret the input.
 			results = interpret(input);
 
@@ -413,6 +424,7 @@ public class Martha {
 		 */
 		for (String r : results) {
 			System.out.println(r);
+			//if(debug>1) writer.println(r);
 		}
 
 		// Return interpret results.
@@ -671,6 +683,15 @@ public class Martha {
 						System.out.println("MARTHA>>> " + m.group(2));
 						System.out.println("=================================");
 						System.out.println();
+						
+						/*if(debug>1)
+						{
+							writer.println();
+							writer.println("=================================");
+							writer.println("MARTHA>>> " + m.group(2));
+							writer.println("=================================");
+							writer.println();
+						}*/
 
 						// Action executed completely.
 						state = 0;
@@ -687,18 +708,29 @@ public class Martha {
 
 					// Parse the action for this Martha Function using a regular
 					// expression.
-					Pattern p = Pattern.compile("\\(says MARTHA ([-\\(\\)\\w\\s]+)\\)");
+					Pattern p = Pattern.compile("\\(says MARTHA ([-.,!?;:\\(\\)\\w\\s]+)\\)");
 					Matcher m = p.matcher(action);
 
+					boolean match_success = m.matches();
+					
 					// If this particular call to says uses quotation marks, use
 					// this regex instead.
-					if (!m.matches()) {
+					if (!match_success) {
 						// Regular expression to handle quotation marks.
 						p = Pattern.compile("\\(says MARTHA \\\"([-\\(\\)\\w\\s.,!?;:]+)\\\"\\)");
 						m = p.matcher(action);
+						match_success = m.matches();
 					}
 
-					if (m.matches()) {
+					if (match_success) {
+						
+						/*System.out.println();
+						System.out.println("=================================");
+						System.out.println("MARTHA>>> " + m.group(1));
+						System.out.println("=================================");
+						System.out.println();
+						state = 0;*/
+						
 						// Say what needs to be said.
 
 						/*
@@ -722,7 +754,7 @@ public class Martha {
 						queueExecution("(say-TMF " + m.group(1) + ")");
 
 						// Action redirected.
-						state = 2;
+						//state = 2;
 					}
 				}
 				/*
@@ -743,6 +775,15 @@ public class Martha {
 						System.out.println("MARTHA>>> " + m.group(2) + "?");
 						System.out.println("=================================");
 						System.out.println();
+						
+						/*if(debug>1)
+						{
+							writer.println();
+							writer.println("=================================");
+							writer.println("MARTHA>>> " + m.group(2) + "?");
+							writer.println("=================================");
+							writer.println();
+						}*/
 
 						// Don't need to do this, the baseUtilityValue for query
 						// is already high enough to block any other plans.
@@ -775,6 +816,15 @@ public class Martha {
 						System.out.println("MARTHA>>> Hey! " + m.group(2) + " is not true!");
 						System.out.println("=================================");
 						System.out.println();
+						
+						/*if(debug>1)
+						{
+							writer.println();
+							writer.println("=================================");
+							writer.println("MARTHA>>> Hey! " + m.group(2) + " is not true!");
+							writer.println("=================================");
+							writer.println();
+						}*/
 
 						state = 0;
 					}

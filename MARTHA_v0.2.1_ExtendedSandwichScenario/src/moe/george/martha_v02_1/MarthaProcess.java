@@ -1,5 +1,7 @@
 package moe.george.martha_v02_1;
 
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,7 +86,7 @@ public class MarthaProcess extends Martha {
 	// The main constructor.
 	public MarthaProcess(Martha parent_martha, String context, String defaultcontext, int init_depth,
 			String target_agent) throws SessionConfigurationException, SessionCommunicationException,
-					SessionInitializationException, CreateException, KBTypeException {
+					SessionInitializationException, CreateException, KBTypeException, FileNotFoundException, UnsupportedEncodingException {
 
 		// Superclass constructor (Martha Engine)
 		super(context);
