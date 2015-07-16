@@ -23,6 +23,14 @@
 =(desires USER (buys USER FiveDollarSteakSandwich))
 =(desires USER (buys USER JimmyJohnnyBLT))
 
+#Test with changing sandwich desires and preinformation
+=(cashAssetsOfAgent USER (Dollar-UnitedStates 4))
+=(desires USER (buys USER FiveDollarSteakSandwich))
+=(knows USER (basicPrice JimmyJohnnyBLT (Dollar-UnitedStates 3.5)))
+=(desires USER (buys USER JimmyJohnnyBLT))
+
+
+
 #Comprehensive test
 =(cashAssetsOfAgent USER (Dollar-UnitedStates 2))
 =(desires USER (buys USER JimmyJohnnyBLT))
